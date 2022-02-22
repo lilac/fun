@@ -1,0 +1,10 @@
+val x: int = (42: int)
+val u: unit = ()
+val y: int array = Array.make 1 1
+val t: int * bool = 42, true
+val o: int option = Some(42)
+val f: int -> bool = fun x -> x <> 1
+val (a, b): int * bool = 10, false
+val g: int -> bool -> int * bool = (fun i b -> (i, b): int -> bool -> int * bool)
+val h = fun a b -> (a: int), (b: bool)
+val i = fun a b -> (a, b: int * bool)
