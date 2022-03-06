@@ -6,6 +6,7 @@ import (
 	"github.com/lilac/funlang/token"
 	"github.com/rhysd/locerr"
 	"io"
+	"regexp"
 	"unicode"
 	"unicode/utf8"
 )
@@ -25,7 +26,7 @@ type Lexer struct {
 	top     rune
 	eof     bool
 	// Function called when error occurs.
-	// By default it outputs an error to stderr.
+	// By default, it outputs an error to stderr.
 	Error func(msg string, pos locerr.Pos)
 }
 
@@ -68,6 +69,10 @@ func (l *Lexer) emit(kind token.Kind) {
 }
 
 func (l *Lexer) emitIdent(ident string) {
+	opReg := regexp.MustCompile(`[+\-*/^=<>]+`)
+	if opReg.MatchString(ident) {
+		l.emit(token.Op)
+	}
 	if len(ident) == 1 {
 		// Shortcut because no keyword is one character. It must be identifier
 		l.emit(token.Ident)
@@ -112,7 +117,7 @@ func (l *Lexer) emitIdent(ident string) {
 }
 
 func (l *Lexer) emitIllegal(reason string) {
-	l.errmsg(reason)
+	l.reportError(reason)
 	t := token.Token{
 		token.Illegal,
 		l.start,
@@ -176,7 +181,7 @@ func (l *Lexer) consume() {
 	l.start = l.current
 }
 
-func (l *Lexer) errmsg(msg string) {
+func (l *Lexer) reportError(msg string) {
 	if l.Error == nil {
 		return
 	}
@@ -224,7 +229,7 @@ func lexLeftParen(l *Lexer) stateFn {
 		l.eat()
 		return lexComment
 	}
-	l.emit(token.Lparen)
+	l.emit(token.LParen)
 	return lex
 }
 
@@ -397,9 +402,9 @@ func lexStringLiteral(l *Lexer) stateFn {
 	return nil
 }
 
-func lexLbracket(l *Lexer) stateFn {
+func lexLBracket(l *Lexer) stateFn {
 	l.eat() // Eat '['
-	l.emit(token.Lbracket)
+	l.emit(token.LBracket)
 	return lex
 }
 
@@ -414,7 +419,7 @@ func lex(l *Lexer) stateFn {
 			return lexLeftParen
 		case ')':
 			l.eat()
-			l.emit(token.Rparen)
+			l.emit(token.RParen)
 		case '+':
 			return lexAdditiveOp
 		case '-':
@@ -457,10 +462,10 @@ func lex(l *Lexer) stateFn {
 			l.eat()
 			l.emit(token.Colon)
 		case '[':
-			return lexLbracket
+			return lexLBracket
 		case ']':
 			l.eat()
-			l.emit(token.Rbracket)
+			l.emit(token.RBracket)
 		default:
 			switch {
 			case unicode.IsSpace(l.top):
