@@ -21,6 +21,6 @@ type Var struct {
 	Id Identifier
 }
 
-func (v Var) Name() string {
-	return "Var"
+func (v Var) String() string {
+	return v.Id.Name
 }

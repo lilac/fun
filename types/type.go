@@ -14,7 +14,7 @@ var (
 )
 
 type Type interface {
-	Name() string
+	String() string
 }
 
 type VarId int
@@ -57,23 +57,23 @@ func TupleType(ts []Type) Type {
 	}
 }
 
-func (v Var) Name() string {
+func (v Var) String() string {
 	c := 'a' + int(v.Id)
 	return "'" + string(rune(c))
 }
 
-func (c CtorType) Name() string {
+func (c CtorType) String() string {
 	count := len(c.Args)
 	if count == 0 {
 		return c.Ctor
 	} else if count == 1 {
-		return fmt.Sprintf("%s %s", c.Args[0].Name(), c.Ctor)
+		return fmt.Sprintf("%s %s", c.Args[0].String(), c.Ctor)
 	} else if count == 2 && !unicode.IsLetter(rune(c.Ctor[0])) {
-		return fmt.Sprintf("%s %s %s", c.Args[0].Name(), c.Ctor, c.Args[1].Name())
+		return fmt.Sprintf("%s %s %s", c.Args[0].String(), c.Ctor, c.Args[1].String())
 	} else {
 		args := make([]string, count)
 		for i, v := range c.Args {
-			args[i] = v.Name()
+			args[i] = v.String()
 		}
 		s := strings.Join(args, ", ")
 		return fmt.Sprintf("(%s) %s", s, c.Ctor)

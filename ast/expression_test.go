@@ -21,7 +21,7 @@ func TestUnit(t *testing.T) {
 	unit := &Unit{HasToken{Token: tok}}
 	assert.Equal(t, unit.Start(), start)
 	assert.Equal(t, unit.End(), end, "End token should match")
-	assert.Equal(t, unit.Name(), "Unit")
+	assert.Equal(t, unit.String(), "Unit")
 }
 
 func TestBool(t *testing.T) {
@@ -29,6 +29,6 @@ func TestBool(t *testing.T) {
 	node := &Bool{HasToken{tok}, boolValue}
 	assert.Equal(t, node.Start(), start)
 	assert.Equal(t, node.End(), end, "End token should match")
-	assert.Equal(t, node.Name(), "Bool")
+	assert.Equal(t, node.String(), "Bool")
 	assert.Equal(t, node.Value, boolValue)
 }

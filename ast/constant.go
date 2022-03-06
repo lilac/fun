@@ -1,8 +1,10 @@
 package ast
 
 import (
+	"fmt"
 	"github.com/lilac/funlang/token"
 	"github.com/rhysd/locerr"
+	"strconv"
 )
 
 // Constants
@@ -54,26 +56,26 @@ func (h *HasToken) End() locerr.Pos {
 	return h.Token.End
 }
 
-func (u *Unit) Name() string {
-	return "Unit"
+func (u *Unit) String() string {
+	return "()"
 }
 
-func (b *Bool) Name() string {
-	return "Bool"
+func (b *Bool) String() string {
+	return strconv.FormatBool(b.Value)
 }
 
-func (i Int) Name() string {
-	return "Int"
+func (i Int) String() string {
+	return strconv.FormatInt(i.Value, 10)
 }
 
-func (f Float) Name() string {
-	return "Float"
+func (f Float) String() string {
+	return fmt.Sprintf("%f", f.Value)
 }
 
-func (s String) Name() string {
-	return "String"
+func (s String) String() string {
+	return fmt.Sprintf(`"%s"`, s.Value)
 }
 
-func (c Char) Name() string {
-	return "Char"
+func (c Char) String() string {
+	return string(c.Value)
 }

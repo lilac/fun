@@ -8,13 +8,11 @@ import (
 import "github.com/lilac/funlang/token"
 
 func NewUnit(tok *token.Token) *ast.Unit {
-	node := ast.Unit{ast.HasToken{tok}}
-	return &node
+	return &ast.Unit{ast.HasToken{tok}}
 }
 
 func NewBool(tok *token.Token) *ast.Bool {
-	node := ast.Bool{ast.HasToken{tok}, tok.Value() == "true"}
-	return &node
+	return &ast.Bool{ast.HasToken{tok}, tok.Value() == "true"}
 }
 
 type ErrorFun = func(format string /*, args ...interface{}*/)
@@ -39,6 +37,16 @@ func NewFloat(tok *token.Token, handler ErrorFun) *ast.Float {
 	} else {
 		return &ast.Float{ast.HasToken{tok}, i}
 	}
+}
+
+func NewString(tok *token.Token, handler ErrorFun) *ast.String {
+	s, err := strconv.Unquote(tok.Value())
+	if err != nil {
+		msg := fmt.Sprintf("Parse error at string literal %s: %v", tok.Value(), err)
+		handler(msg)
+		return &ast.String{}
+	}
+	return &ast.String{ast.HasToken{tok}, s}
 }
 
 func NewVar(tok *token.Token) *ast.Var {

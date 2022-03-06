@@ -52,10 +52,22 @@ func TestLexFailed(t *testing.T) {
 }
 
 func TestParseDecs(t *testing.T) {
-	src := locerr.NewDummySource("val a = 1 val b = true")
+	lines := []string{
+		"val a = 1",
+		"val b = true",
+		"val t = not false",
+		"val u = ()",
+		"val s = \"abc\"",
+		"val x = s",
+	}
+	src := locerr.NewDummySource(strings.Join(lines, "\n"))
 	module, err := Parse(src)
 	if err != nil {
 		t.Fatal("Unexpected error:", err)
 	}
-	assert.Equal(t, 2, len(module.Decs))
+	actual := make([]string, len(module.Decs))
+	for i, d := range module.Decs {
+		actual[i] = d.String()
+	}
+	assert.Equal(t, lines, actual)
 }

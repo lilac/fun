@@ -5,13 +5,13 @@ import (
 	"github.com/lilac/funlang/token"
 	"github.com/lilac/funlang/types"
 	"github.com/rhysd/locerr"
+	"strings"
 )
 
 type Exp interface {
 	Start() locerr.Pos
 	End() locerr.Pos
-	Name() string
-	// Repr() string
+	String() string
 }
 
 type Apply struct {
@@ -72,8 +72,8 @@ func (a *Apply) End() locerr.Pos {
 	return a.Arg.End()
 }
 
-func (*Apply) Name() string {
-	return "Apply"
+func (a *Apply) String() string {
+	return fmt.Sprintf("%s %s", a.Fun, a.Arg)
 }
 
 func (t Tuple) Start() locerr.Pos {
@@ -85,8 +85,12 @@ func (t Tuple) End() locerr.Pos {
 	return t.Elements[size-1].End()
 }
 
-func (t Tuple) Name() string {
-	return "Tuple"
+func (t Tuple) String() string {
+	elements := make([]string, len(t.Elements))
+	for i, t := range t.Elements {
+		elements[i] = t.String()
+	}
+	return "(" + strings.Join(elements, ", ") + ")"
 }
 
 func (s Sequence) Start() locerr.Pos {
@@ -98,12 +102,16 @@ func (s Sequence) End() locerr.Pos {
 	return s.Elements[size-1].End()
 }
 
-func (s Sequence) Name() string {
-	return "Sequence"
+func (s Sequence) String() string {
+	elements := make([]string, len(s.Elements))
+	for i, t := range s.Elements {
+		elements[i] = t.String()
+	}
+	return "(" + strings.Join(elements, "; ") + ")"
 }
 
-func (i IfThen) Name() string {
-	return "If"
+func (i IfThen) String() string {
+	return fmt.Sprintf("if %s then %s else %s", i.Cond, i.Then, i.Else)
 }
 
 func (i IfThen) Start() locerr.Pos {
@@ -114,7 +122,7 @@ func (i IfThen) End() locerr.Pos {
 	return i.Else.End()
 }
 
-func (l LetIn) Name() string {
+func (l LetIn) String() string {
 	return "Let"
 }
 
@@ -135,12 +143,16 @@ func (t TypeAnnotation) End() locerr.Pos {
 	return t.EndToken.End
 }
 
-func (t TypeAnnotation) Name() string {
-	return fmt.Sprintf("%s : %s", t.Exp, t.Type)
+func (t TypeAnnotation) String() string {
+	if t.Type != nil {
+		return fmt.Sprintf("%s : %s", t.Exp, t.Type)
+	} else {
+		return t.Exp.String()
+	}
 }
 
-func (n Not) Name() string {
-	return "Not"
+func (n Not) String() string {
+	return fmt.Sprintf("not %s", n.Child.String())
 }
 
 func (n Not) Start() locerr.Pos {
@@ -151,8 +163,9 @@ func (n Not) End() locerr.Pos {
 	return n.Child.End()
 }
 
-func (n Neg) Name() string {
-	return "Neg"
+func (n Neg) String() string {
+	return fmt.Sprintf("-%s", n.Child.String())
+
 }
 
 func (n Neg) Start() locerr.Pos {
@@ -163,8 +176,8 @@ func (n Neg) End() locerr.Pos {
 	return n.Child.End()
 }
 
-func (n InfixApp) Name() string {
-	return "InfixOp"
+func (n InfixApp) String() string {
+	return fmt.Sprintf("%s %s %s", n.Left, n.Op, n.Right)
 }
 
 func (n InfixApp) Start() locerr.Pos {
