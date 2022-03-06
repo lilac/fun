@@ -113,7 +113,8 @@ con:
 	{ $$ = NewInt($1, funlex.Error) }
 |	Float
 	{ $$ = NewFloat($1, funlex.Error) }
-
+|	StringLiteral
+	{ $$ = NewString($1, funlex.Error) }
 %%
 
 // The parser expects the lexer to return 0 on EOF.  Give it a name
