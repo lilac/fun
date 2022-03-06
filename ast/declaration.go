@@ -25,6 +25,10 @@ type FunDec struct {
 	Body       Exp
 }
 
+type Module struct {
+	Decs []Dec
+}
+
 func (v ValDec) Kind() string {
 	return "val"
 }

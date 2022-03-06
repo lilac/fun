@@ -11,9 +11,10 @@ type Kind int
 const (
 	Illegal Kind = iota
 	Comment
-	Lparen
-	Rparen
+	LParen
+	RParen
 	Ident
+	Op
 	Bool
 	Not
 	Int
@@ -53,8 +54,8 @@ const (
 	Fun
 	Colon
 	Type
-	Lbracket
-	Rbracket
+	LBracket
+	RBracket
 	Eof
 )
 
@@ -62,9 +63,10 @@ var tokenTable = [...]string{
 	Illegal:       "Illegal",
 	Eof:           "Eof",
 	Comment:       "Comment",
-	Lparen:        "(",
-	Rparen:        ")",
+	LParen:        "(",
+	RParen:        ")",
 	Ident:         "Ident",
+	Op:            "Op",
 	Bool:          "Bool",
 	Not:           "Not",
 	Int:           "Int",
@@ -104,8 +106,8 @@ var tokenTable = [...]string{
 	Fun:           "fun",
 	Colon:         ":",
 	Type:          "type",
-	Lbracket:      "[",
-	Rbracket:      "]",
+	LBracket:      "[",
+	RBracket:      "]",
 }
 
 // Token is the parsed elements of the source code.

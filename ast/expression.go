@@ -11,11 +11,22 @@ type Exp interface {
 	Start() locerr.Pos
 	End() locerr.Pos
 	Name() string
+	// Repr() string
 }
 
 type Apply struct {
 	Fun Exp
 	Arg Exp
+}
+
+type Not struct {
+	HasToken
+	Child Exp
+}
+
+type Neg struct {
+	HasToken
+	Child Exp
 }
 
 type Op Identifier
@@ -95,8 +106,25 @@ func (i IfThen) Name() string {
 	return "If"
 }
 
+func (i IfThen) Start() locerr.Pos {
+	return i.HasToken.Start()
+}
+
+func (i IfThen) End() locerr.Pos {
+	return i.Else.End()
+}
+
 func (l LetIn) Name() string {
 	return "Let"
+}
+
+func (l LetIn) Start() locerr.Pos {
+	return l.HasToken.Start()
+}
+
+func (l LetIn) End() locerr.Pos {
+	last := len(l.Body) - 1
+	return l.Body[last].End()
 }
 
 func (t TypeAnnotation) Start() locerr.Pos {
@@ -109,4 +137,40 @@ func (t TypeAnnotation) End() locerr.Pos {
 
 func (t TypeAnnotation) Name() string {
 	return fmt.Sprintf("%s : %s", t.Exp, t.Type)
+}
+
+func (n Not) Name() string {
+	return "Not"
+}
+
+func (n Not) Start() locerr.Pos {
+	return n.HasToken.Start()
+}
+
+func (n Not) End() locerr.Pos {
+	return n.Child.End()
+}
+
+func (n Neg) Name() string {
+	return "Neg"
+}
+
+func (n Neg) Start() locerr.Pos {
+	return n.HasToken.Start()
+}
+
+func (n Neg) End() locerr.Pos {
+	return n.Child.End()
+}
+
+func (n InfixApp) Name() string {
+	return "InfixOp"
+}
+
+func (n InfixApp) Start() locerr.Pos {
+	return n.Left.Start()
+}
+
+func (n InfixApp) End() locerr.Pos {
+	return n.Right.End()
 }
