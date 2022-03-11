@@ -10,8 +10,8 @@
 package syntax
 
 import (
-	"github.com/lilac/funlang/token"
-	"github.com/lilac/funlang/ast"
+	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/ast"
 )
 %}
 

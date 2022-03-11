@@ -2,8 +2,8 @@ package ast
 
 import (
 	"fmt"
-	"github.com/lilac/funlang/token"
-	"github.com/lilac/funlang/types"
+	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/types"
 	"github.com/rhysd/locerr"
 	"strings"
 )

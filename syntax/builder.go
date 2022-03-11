@@ -2,10 +2,10 @@ package syntax
 
 import (
 	"fmt"
-	"github.com/lilac/funlang/ast"
+	"github.com/lilac/fun-lang/ast"
 	"strconv"
 )
-import "github.com/lilac/funlang/token"
+import "github.com/lilac/fun-lang/token"
 
 func NewUnit(tok *token.Token) *ast.Unit {
 	return &ast.Unit{ast.HasToken{tok}}
