@@ -2,7 +2,7 @@ package ast
 
 import (
 	"fmt"
-	"github.com/lilac/funlang/types"
+	"github.com/lilac/fun-lang/types"
 	"strings"
 )
 

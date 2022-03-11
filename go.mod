@@ -1,4 +1,4 @@
-module github.com/lilac/funlang
+module github.com/lilac/fun-lang
 
 go 1.17
 

@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/lilac/funlang/token"
+	"github.com/lilac/fun-lang/token"
 	"github.com/rhysd/locerr"
 	"github.com/stretchr/testify/assert"
 	"testing"

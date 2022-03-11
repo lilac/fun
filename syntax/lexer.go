@@ -3,7 +3,7 @@ package syntax
 import (
 	"bytes"
 	"fmt"
-	"github.com/lilac/funlang/token"
+	"github.com/lilac/fun-lang/token"
 	"github.com/rhysd/locerr"
 	"io"
 	"regexp"

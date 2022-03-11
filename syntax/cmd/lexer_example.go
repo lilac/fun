@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/lilac/funlang/syntax"
-	"github.com/lilac/funlang/token"
+	"github.com/lilac/fun-lang/syntax"
+	"github.com/lilac/fun-lang/token"
 	"github.com/rhysd/locerr"
 	"os"
 	"path/filepath"
