@@ -54,11 +54,11 @@ func TestLexFailed(t *testing.T) {
 func TestParseDecs(t *testing.T) {
 	lines := []string{
 		"val a = 1",
-		"val b = true",
-		"val t = not false",
-		"val u = ()",
-		"val s = \"abc\"",
-		"val x = s",
+		//"val b = true",
+		//"val t = not false",
+		//"val u = ()",
+		//"val s = \"abc\"",
+		//"val x = s",
 	}
 	src := locerr.NewDummySource(strings.Join(lines, "\n"))
 	module, err := Parse(src)

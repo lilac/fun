@@ -1,0 +1,29 @@
+/[ \t]/  { /* Skip blanks and tabs. */ }
+
+/val/ {
+  lval.token = NewToken(funlex, Val)
+  return Val
+}
+
+/=/ {
+  lval.token = NewToken(funlex, Equal)
+  return Equal
+}
+
+/[0-9]*/ {
+  lval.token = NewToken(funlex, Int)
+  return Int
+}
+
+/[a-z][a-z0-9]*/ {
+  lval.token = NewToken(funlex, Ident)
+  return Ident
+}
+
+/./ {
+  lval.token = NewToken(funlex, Illegal)
+  return Illegal
+}
+
+//
+package syntax

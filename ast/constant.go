@@ -49,11 +49,11 @@ type Char struct {
 }
 
 func (h *HasToken) Start() locerr.Pos {
-	return h.Token.Start
+	return h.Token.Start()
 }
 
 func (h *HasToken) End() locerr.Pos {
-	return h.Token.End
+	return h.Token.End()
 }
 
 func (u *Unit) String() string {
