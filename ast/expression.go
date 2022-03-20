@@ -140,7 +140,7 @@ func (t TypeAnnotation) Start() locerr.Pos {
 }
 
 func (t TypeAnnotation) End() locerr.Pos {
-	return t.EndToken.End
+	return t.EndToken.End()
 }
 
 func (t TypeAnnotation) String() string {

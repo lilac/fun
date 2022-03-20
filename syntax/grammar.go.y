@@ -82,7 +82,7 @@ module:
 	dec
 	{
 	 	$$ = &ast.Module{$1}
-	 	funlex.(*funLex).result = $$
+	 	funrcvr.lval.mod = $$
 	}
 
 dec:

@@ -7,6 +7,14 @@ import (
 )
 import "github.com/lilac/fun-lang/token"
 
+func NewToken(lexer *Lexer, kind int) *token.Token {
+	tok := token.NewToken(lexer.Text())
+	tok.Line = lexer.Line()
+	tok.Column = lexer.Column()
+	tok.Kind = kind
+	return tok
+}
+
 func NewUnit(tok *token.Token) *ast.Unit {
 	return &ast.Unit{ast.HasToken{tok}}
 }
