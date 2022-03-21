@@ -4,31 +4,28 @@ import (
 	"fmt"
 	"github.com/lilac/fun-lang/ast"
 	"github.com/lilac/fun-lang/token"
-	"github.com/rhysd/locerr"
 	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
 )
 
 func newTestToken(kind token.Kind, str string) *token.Token {
-	s := locerr.NewDummySource(str)
-	start := locerr.Pos{
-		Offset: 0,
+	start := token.Position{
 		Line:   1,
 		Column: 1,
-		File:   s,
 	}
-	end := locerr.Pos{
-		Offset: len(str),
+	end := token.Position{
 		Line:   1,
 		Column: len(str),
-		File:   s,
 	}
 	return &token.Token{
 		Kind:  kind,
-		Start: start,
-		End:   end,
-		File:  s,
+		Value: str,
+		Location: token.Location{
+			Start: start,
+			End:   end,
+			Path:  "<stdin>",
+		},
 	}
 }
 
@@ -39,7 +36,7 @@ func TestNewBool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		name := fmt.Sprintf("parse the bool %s", tt)
-		tok := newTestToken(token.Bool, tt)
+		tok := newTestToken(Bool, tt)
 		want := &ast.Bool{
 			ast.HasToken{tok},
 			tt == "true",
@@ -62,7 +59,7 @@ func TestNewInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		name := fmt.Sprintf("parse the int %s", tt)
-		tok := newTestToken(token.Int, tt)
+		tok := newTestToken(Int, tt)
 		num, err := strconv.ParseInt(tt, 10, 64)
 		want := &ast.Int{
 			ast.HasToken{tok},
