@@ -58,7 +58,7 @@ func (l Lexer) Text() string {
 	return string(l.buffer)
 }
 
-func (l Lexer) NewToken(kind int) *token.Token {
+func (l Lexer) newToken(kind int) *token.Token {
 	tok := token.NewToken(l.Text())
 	tok.Location = token.Location{
 		Start: l.start,
@@ -84,7 +84,7 @@ func NewLexer(src *Source) *Lexer {
 		buffer:  nil,
 	}
 	// Look ahead to start parsing
-	l.forward()
+	l.lookAhead()
 	return l
 }
 
@@ -102,7 +102,7 @@ func (l *Lexer) LexAll() []*token.Token {
 }
 
 func (l *Lexer) emit(kind int) {
-	l.token = l.NewToken(kind)
+	l.token = l.newToken(kind)
 	// reset the start position
 	l.start = l.current
 	l.buffer = nil // reset the buffer
@@ -170,7 +170,7 @@ func (l *Lexer) unclosedComment(expected string) {
 }
 
 // look ahead by one char, and assign top and eof.
-func (l *Lexer) forward() {
+func (l *Lexer) lookAhead() {
 	r, _, err := l.input.ReadRune()
 	if err == io.EOF {
 		l.top = 0
@@ -207,7 +207,7 @@ func (l *Lexer) shift() {
 func (l *Lexer) eat() {
 	l.shift()
 	l.buffer = append(l.buffer, l.top)
-	l.forward()
+	l.lookAhead()
 }
 
 // skip the current char
@@ -216,7 +216,7 @@ func (l *Lexer) consume() {
 		return
 	}
 	l.shift()
-	l.forward()
+	l.lookAhead()
 	l.start = l.current
 }
 
