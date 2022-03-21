@@ -1,28 +1,50 @@
 package token
 
-import "github.com/rhysd/locerr"
+import (
+	"fmt"
+	"github.com/rhysd/locerr"
+)
 
-type Token struct {
-	Kind  int
-	value string
+type Kind = int
+
+type Position struct {
 	// Line number.
 	Line int
 	// Column number.
 	Column int
 }
 
-func NewToken(text string) *Token {
-	return &Token{value: text}
+// Location denotes a range in a file
+type Location struct {
+	Start Position
+	End   Position
+	Path  string
 }
 
-func (t Token) Value() string {
-	return t.value
+type Token struct {
+	Kind     Kind
+	Value    string
+	Location Location
+}
+
+func NewToken(text string) *Token {
+	return &Token{Value: text}
 }
 
 func (t Token) Start() locerr.Pos {
-	return locerr.Pos{Line: t.Line, Column: t.Column}
+	pos := t.Location.Start
+	return locerr.Pos{Line: pos.Line, Column: pos.Column, File: &locerr.Source{Path: t.Location.Path}}
 }
 
 func (t Token) End() locerr.Pos {
-	return locerr.Pos{Line: t.Line, Column: t.Column + len(t.value)}
+	pos := t.Location.End
+	return locerr.Pos{Line: pos.Line, Column: pos.Column, File: &locerr.Source{Path: t.Location.Path}}
+}
+
+func (t Token) String() string {
+	return fmt.Sprintf("%v:%s", t.Kind, t.Value)
+}
+
+func (p Position) String() string {
+	return fmt.Sprintf("%d:%d", p.Line, p.Column)
 }

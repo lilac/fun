@@ -119,4 +119,4 @@ con:
 
 // The parser expects the lexer to return 0 on EOF.  Give it a name
 // for clarity.
-const eof = 0
+const Eof = 0

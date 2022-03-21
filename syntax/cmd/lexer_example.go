@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/lilac/fun-lang/syntax"
-	"github.com/lilac/fun-lang/token"
-	"github.com/rhysd/locerr"
 	"os"
 	"path/filepath"
 )
@@ -21,14 +19,14 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	var src *locerr.Source
+	var src *syntax.Source
 	var err error
 
 	if flag.NArg() == 0 {
-		src, err = locerr.NewSourceFromStdin()
+		src, err = syntax.NewSourceFromFile("")
 	} else {
 		file := filepath.FromSlash(flag.Arg(0))
-		src, err = locerr.NewSourceFromFile(file)
+		src, err = syntax.NewSourceFromFile(file)
 	}
 
 	if err != nil {
@@ -38,26 +36,17 @@ func main() {
 	LexFile(src)
 }
 
-func LexFile(src *locerr.Source) {
+func LexFile(src *syntax.Source) {
 	lex := syntax.NewLexer(src)
 
-	// Start to lex the source in other goroutine
-	go lex.Lex()
-
-	// tokens will be sent from lex.Tokens channel
-	for {
-		select {
-		case tok := <-lex.Tokens:
-			switch tok.Kind {
-			case token.Illegal:
-				fmt.Printf("Lexing invalid token at %v\n", tok.Start)
-				return
-			case token.Eof:
-				fmt.Println("End of input")
-				return
-			default:
-				fmt.Printf("Token: %s", tok.String())
-			}
+	for _, tok := range lex.LexAll() {
+		switch tok.Kind {
+		case syntax.Illegal:
+			fmt.Printf("Lexing invalid token at %v\n", tok.Start())
+			return
+		default:
+			fmt.Printf("Token: %s", tok.Value)
 		}
 	}
+
 }

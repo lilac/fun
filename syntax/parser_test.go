@@ -1,14 +1,13 @@
 package syntax
 
 import (
-	"github.com/rhysd/locerr"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
 
 func TestTooLargeIntLiteral(t *testing.T) {
-	src := locerr.NewDummySource("val a = 123456789123456789123456789123456789123456789")
+	src := NewDummySource("val a = 123456789123456789123456789123456789123456789")
 
 	r, err := Parse(src)
 	if err == nil {
@@ -20,7 +19,7 @@ func TestTooLargeIntLiteral(t *testing.T) {
 }
 
 func TestInvalidStringLiteral(t *testing.T) {
-	src := locerr.NewDummySource("val s = \"a\nb\"\n")
+	src := NewDummySource("val s = \"a\nb\"\n")
 	r, err := Parse(src)
 	if err == nil {
 		t.Fatalf("Invalid string literal must raise an error but got %v", r)
@@ -28,7 +27,7 @@ func TestInvalidStringLiteral(t *testing.T) {
 }
 
 func TestTooLargeFloatLiteral(t *testing.T) {
-	src := locerr.NewDummySource("val f = 1.7976931348623159e308")
+	src := NewDummySource("val f = 1.7976931348623159e308")
 
 	r, err := Parse(src)
 	if err == nil {
@@ -40,13 +39,13 @@ func TestTooLargeFloatLiteral(t *testing.T) {
 }
 
 func TestLexFailed(t *testing.T) {
-	src := locerr.NewDummySource("(* comment is not closed")
+	src := NewDummySource("(* comment is not closed")
 	_, err := Parse(src)
 	if err == nil {
 		t.Fatal("Lex error was not reported")
 	}
 	msg := err.Error()
-	if !strings.Contains(msg, "Lexing source into tokens failed") {
+	if !strings.Contains(msg, "Expected '*' for closing comment") {
 		t.Fatal("Unexpected error message:", msg)
 	}
 }
@@ -54,13 +53,13 @@ func TestLexFailed(t *testing.T) {
 func TestParseDecs(t *testing.T) {
 	lines := []string{
 		"val a = 1",
-		//"val b = true",
-		//"val t = not false",
-		//"val u = ()",
-		//"val s = \"abc\"",
-		//"val x = s",
+		"val b = true",
+		"val t = not false",
+		"val u = ()",
+		"val s = \"abc\"",
+		"val x = s",
 	}
-	src := locerr.NewDummySource(strings.Join(lines, "\n"))
+	src := NewDummySource(strings.Join(lines, "\n"))
 	module, err := Parse(src)
 	if err != nil {
 		t.Fatal("Unexpected error:", err)

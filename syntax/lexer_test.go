@@ -3,12 +3,24 @@ package syntax
 import (
 	"fmt"
 	"github.com/lilac/fun-lang/token"
-	"github.com/rhysd/locerr"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+func checkTokens(t *testing.T, tokens []*token.Token) {
+	for _, tok := range tokens {
+		switch tok.Kind {
+		case Illegal:
+			t.Fatalf("Illegal token %v\n", tok)
+		case Eof:
+			return
+		default:
+			fmt.Printf("token %v\n", tok)
+		}
+	}
+}
 
 func TestLexingOK(t *testing.T) {
 	for _, testDir := range []string{
@@ -26,23 +38,12 @@ func TestLexingOK(t *testing.T) {
 			}
 
 			t.Run(fmt.Sprintf("Check lexing successfully: %s", n), func(t *testing.T) {
-				s, err := locerr.NewSourceFromFile(n)
+				s, err := NewSourceFromFile(n)
 				if err != nil {
 					panic(err)
 				}
 				l := NewLexer(s)
-				go l.Lex()
-				for {
-					select {
-					case tok := <-l.Tokens:
-						switch tok.Kind {
-						case token.Illegal:
-							t.Fatal(tok.String())
-						case token.Eof:
-							return
-						}
-					}
-				}
+				checkTokens(t, l.LexAll())
 			})
 		}
 	}
@@ -51,41 +52,19 @@ func TestLexingOK(t *testing.T) {
 // List literal can be lexed but parser should complain that it is not implemented yet.
 // This behavior is implemented because array literal resembles to list literal.
 func TestLexingListLiteral(t *testing.T) {
-	s := locerr.NewDummySource("[1, 2, 3]")
+	s := NewDummySource("[1, 2, 3]")
 	l := NewLexer(s)
-	go l.Lex()
-lexing:
-	for {
-		select {
-		case tok := <-l.Tokens:
-			switch tok.Kind {
-			case token.Illegal:
-				t.Fatal(tok.String())
-			case token.Eof:
-				break lexing
-			}
-		}
-	}
+	tokens := l.LexAll()
+	checkTokens(t, tokens)
 }
 
 func TestSampleProgram(t *testing.T) {
 	program := `fun fib(n) = if n > 2 then fib(n-1) + fib(n-2) else 1
 	val id = fn x => x
 `
-	s := locerr.NewDummySource(program)
+	s := NewDummySource(program)
 	l := NewLexer(s)
-	go l.Lex()
-	for {
-		select {
-		case tok := <-l.Tokens:
-			switch tok.Kind {
-			case token.Illegal:
-				t.Fatal(tok.String())
-			case token.Eof:
-				return
-			}
-		}
-	}
+	checkTokens(t, l.LexAll())
 }
 
 func TestLexingIllegal(t *testing.T) {
@@ -102,29 +81,22 @@ func TestLexingIllegal(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("Check lexing illegal input: %s", f.Name()), func(t *testing.T) {
-			s, err := locerr.NewSourceFromFile(n)
+			s, err := NewSourceFromFile(n)
 			if err != nil {
 				panic(err)
 			}
 			errorOccurred := false
 			l := NewLexer(s)
-			l.Error = func(_ string, _ locerr.Pos) {
-				errorOccurred = true
-			}
-			go l.Lex()
-			for {
-				select {
-				case tok := <-l.Tokens:
-					switch tok.Kind {
-					case token.Illegal:
-						if !errorOccurred {
-							t.Fatalf("Illegal token was emitted but no error occurred")
-						}
-						return
-					case token.Eof:
+
+			for _, tok := range l.LexAll() {
+				switch tok.Kind {
+				case Illegal:
+					errorOccurred = true
+				case Eof:
+					if !errorOccurred {
 						t.Fatalf("Lexing successfully done unexpectedly")
-						return
 					}
+					return
 				}
 			}
 		})

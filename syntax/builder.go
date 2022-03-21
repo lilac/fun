@@ -7,26 +7,18 @@ import (
 )
 import "github.com/lilac/fun-lang/token"
 
-func NewToken(lexer *Lexer, kind int) *token.Token {
-	tok := token.NewToken(lexer.Text())
-	tok.Line = lexer.Line()
-	tok.Column = lexer.Column()
-	tok.Kind = kind
-	return tok
-}
-
 func NewUnit(tok *token.Token) *ast.Unit {
 	return &ast.Unit{ast.HasToken{tok}}
 }
 
 func NewBool(tok *token.Token) *ast.Bool {
-	return &ast.Bool{ast.HasToken{tok}, tok.Value() == "true"}
+	return &ast.Bool{ast.HasToken{tok}, tok.Value == "true"}
 }
 
 type ErrorFun = func(format string /*, args ...interface{}*/)
 
 func NewInt(tok *token.Token, handler ErrorFun) *ast.Int {
-	i, err := strconv.ParseInt(tok.Value(), 10, 64)
+	i, err := strconv.ParseInt(tok.Value, 10, 64)
 	if err != nil {
 		msg := fmt.Sprintf("Parse error at int literal: %s", err.Error())
 		handler(msg)
@@ -37,7 +29,7 @@ func NewInt(tok *token.Token, handler ErrorFun) *ast.Int {
 }
 
 func NewFloat(tok *token.Token, handler ErrorFun) *ast.Float {
-	i, err := strconv.ParseFloat(tok.Value(), 64)
+	i, err := strconv.ParseFloat(tok.Value, 64)
 	if err != nil {
 		msg := fmt.Sprintf("Parse error at float literal: %s", err.Error())
 		handler(msg)
@@ -48,9 +40,9 @@ func NewFloat(tok *token.Token, handler ErrorFun) *ast.Float {
 }
 
 func NewString(tok *token.Token, handler ErrorFun) *ast.String {
-	s, err := strconv.Unquote(tok.Value())
+	s, err := strconv.Unquote(tok.Value)
 	if err != nil {
-		msg := fmt.Sprintf("Parse error at string literal %s: %v", tok.Value(), err)
+		msg := fmt.Sprintf("Parse error at string literal %s: %v", tok.Value, err)
 		handler(msg)
 		return &ast.String{}
 	}
@@ -58,7 +50,7 @@ func NewString(tok *token.Token, handler ErrorFun) *ast.String {
 }
 
 func NewVar(tok *token.Token) *ast.Var {
-	return &ast.Var{ast.HasToken{tok}, ast.Identifier{Name: tok.Value()}}
+	return &ast.Var{ast.HasToken{tok}, ast.Identifier{Name: tok.Value}}
 }
 
 func NewNot(tok *token.Token, child ast.Exp) *ast.Not {
@@ -68,7 +60,7 @@ func NewNot(tok *token.Token, child ast.Exp) *ast.Not {
 func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) ast.Exp {
 	return &ast.InfixApp{
 		Left:  left,
-		Op:    ast.Op{Name: tok.Value()},
+		Op:    ast.Op{Name: tok.Value},
 		Right: right,
 	}
 }
@@ -76,7 +68,7 @@ func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) ast.Exp {
 func NewValDec(tok *token.Token, body ast.Exp) *ast.ValDec {
 	return &ast.ValDec{
 		Vars: []ast.Var{},
-		Arg:  ast.Arg{Id: ast.Identifier{Name: tok.Value()}, Type: nil},
+		Arg:  ast.Arg{Id: ast.Identifier{Name: tok.Value}, Type: nil},
 		Body: body,
 	}
 }
