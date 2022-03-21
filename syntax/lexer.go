@@ -1,10 +1,9 @@
 package syntax
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"github.com/lilac/fun-lang/token"
-	"github.com/rhysd/locerr"
 	"io"
 	"regexp"
 	"unicode"
@@ -13,119 +12,153 @@ import (
 
 type stateFn func(*Lexer) stateFn
 
-//const eof = -1
-
 // Lexer instance which contains lexing states.
 type Lexer struct {
 	state   stateFn
-	start   locerr.Pos
-	current locerr.Pos
-	src     *locerr.Source
-	input   *bytes.Reader
-	Tokens  chan token.Token
+	start   token.Position
+	current token.Position
+	src     string // the path to the source code
+	input   io.RuneReader
+	token   *token.Token
+	buffer  []rune // partial runes of the current token being parsed
 	top     rune
 	eof     bool
-	// Function called when error occurs.
-	// By default, it outputs an error to stderr.
-	Error func(msg string, pos locerr.Pos)
+	OnError ErrorFun // error listener
+}
+
+func (l *Lexer) Lex(lval *funSymType) int {
+	if l.state != nil && l.Next() != nil {
+		lval.token = l.token
+		return lval.token.Kind
+	}
+	return Eof
+}
+
+// Next consumes the input until a token is parsed, and nil is returned when end of file reached.
+func (l *Lexer) Next() *token.Token {
+	l.token = nil // reset the current token
+	for l.state != nil && l.token == nil {
+		l.state = l.state(l)
+	}
+	return l.token
+}
+
+func (l Lexer) Error(s string) {
+	fmt.Printf("Parsing error near %s(%v): %s\n", l.src, l.current, s)
+	if l.OnError != nil {
+		l.OnError(s)
+	}
+}
+
+func (l Lexer) Current() token.Position {
+	return l.current
+}
+
+func (l Lexer) Text() string {
+	return string(l.buffer)
+}
+
+func (l Lexer) NewToken(kind int) *token.Token {
+	tok := token.NewToken(l.Text())
+	tok.Location = token.Location{
+		Start: l.start,
+		End:   l.current,
+		Path:  l.src,
+	}
+	tok.Kind = kind
+	return tok
 }
 
 // NewLexer creates new Lexer instance.
-func NewLexer(src *locerr.Source) *Lexer {
-	start := locerr.Pos{
-		Offset: 0,
+func NewLexer(src *Source) *Lexer {
+	start := token.Position{
 		Line:   1,
 		Column: 1,
-		File:   src,
 	}
-	return &Lexer{
+	l := &Lexer{
 		state:   lex,
 		start:   start,
 		current: start,
-		input:   bytes.NewReader(src.Code),
-		src:     src,
-		Tokens:  make(chan token.Token),
-		Error:   nil,
+		input:   bufio.NewReader(src.Reader),
+		src:     src.Path,
+		buffer:  nil,
 	}
-}
-
-// Lex starts lexing. Lexed tokens will be queued into channel in lexer.
-func (l *Lexer) Lex() {
-	// Set top to peek current rune
+	// Look ahead to start parsing
 	l.forward()
-	for l.state != nil {
-		l.state = l.state(l)
-	}
+	return l
 }
 
-func (l *Lexer) emit(kind token.Kind) {
-	l.Tokens <- token.Token{
-		kind,
-		l.start,
-		l.current,
-		l.src,
+// LexAll starts lexing.
+func (l *Lexer) LexAll() []*token.Token {
+	tokens := make([]*token.Token, 0, 10)
+	for l.state != nil {
+		if l.Next() != nil {
+			tokens = append(tokens, l.token)
+		} else {
+			break
+		}
 	}
+	return tokens
+}
+
+func (l *Lexer) emit(kind int) {
+	l.token = l.NewToken(kind)
+	// reset the start position
 	l.start = l.current
+	l.buffer = nil // reset the buffer
 }
 
 func (l *Lexer) emitIdent(ident string) {
 	opReg := regexp.MustCompile(`[+\-*/^=<>]+`)
 	if opReg.MatchString(ident) {
-		l.emit(token.Op)
+		l.emit(Op)
 	}
 	if len(ident) == 1 {
 		// Shortcut because no keyword is one character. It must be identifier
-		l.emit(token.Ident)
+		l.emit(Ident)
 		return
 	}
 
 	switch ident {
 	case "true", "false":
-		l.emit(token.Bool)
+		l.emit(Bool)
 	case "if":
-		l.emit(token.If)
+		l.emit(If)
 	case "then":
-		l.emit(token.Then)
+		l.emit(Then)
 	case "else":
-		l.emit(token.Else)
+		l.emit(Else)
 	case "let":
-		l.emit(token.Let)
+		l.emit(Let)
 	case "in":
-		l.emit(token.In)
+		l.emit(In)
 	case "end":
-		l.emit(token.End)
+		l.emit(End)
 	case "val":
-		l.emit(token.Val)
+		l.emit(Val)
 	case "rec":
-		l.emit(token.Rec)
+		l.emit(Rec)
 	case "not":
-		l.emit(token.Not)
+		l.emit(Not)
 	case "match":
-		l.emit(token.Match)
+		l.emit(Match)
 	case "with":
-		l.emit(token.With)
+		l.emit(With)
 	case "fn":
-		l.emit(token.Fn)
+		l.emit(Fn)
 	case "fun":
-		l.emit(token.Fun)
+		l.emit(Fun)
 	case "type":
-		l.emit(token.Type)
+		l.emit(Type)
 
 	default:
-		l.emit(token.Ident)
+		l.emit(Ident)
 	}
 }
 
 func (l *Lexer) emitIllegal(reason string) {
 	l.reportError(reason)
-	t := token.Token{
-		token.Illegal,
-		l.start,
-		l.current,
-		l.src,
-	}
-	l.Tokens <- t
-	l.start = l.current
+	l.emit(Illegal)
 }
 
 func (l *Lexer) expected(s string, actual rune) {
@@ -136,6 +169,7 @@ func (l *Lexer) unclosedComment(expected string) {
 	l.emitIllegal(fmt.Sprintf("Expected '%s' for closing comment but got Eof", expected))
 }
 
+// look ahead by one char, and assign top and eof.
 func (l *Lexer) forward() {
 	r, _, err := l.input.ReadRune()
 	if err == io.EOF {
@@ -158,39 +192,41 @@ func (l *Lexer) forward() {
 	l.eof = false
 }
 
-func (l *Lexer) eat() {
-	size := utf8.RuneLen(l.top)
-	l.current.Offset += size
-
+// move ahead
+func (l *Lexer) shift() {
 	// TODO: Consider \n\r
 	if l.top == '\n' {
 		l.current.Line++
 		l.current.Column = 1
 	} else {
-		l.current.Column += size
+		l.current.Column += 1
 	}
+}
 
+// update the current position, and push the top char to buffer, then look ahead.
+func (l *Lexer) eat() {
+	l.shift()
+	l.buffer = append(l.buffer, l.top)
 	l.forward()
 }
 
+// skip the current char
 func (l *Lexer) consume() {
 	if l.eof {
 		return
 	}
-	l.eat()
+	l.shift()
+	l.forward()
 	l.start = l.current
 }
 
 func (l *Lexer) reportError(msg string) {
-	if l.Error == nil {
-		return
-	}
-	l.Error(msg, l.current)
+	l.Error(msg)
 }
 
 func (l *Lexer) eatIdent() bool {
 	if !isLetter(l.top) {
-		l.expected("letter for head character of identifer", l.top)
+		l.expected("letter for head character of identifier", l.top)
 		return false
 	}
 	l.eat()
@@ -215,7 +251,7 @@ func lexComment(l *Lexer) stateFn {
 			}
 			if l.top == ')' {
 				l.eat()
-				l.emit(token.Comment)
+				l.emit(Comment)
 				return lex
 			}
 		}
@@ -229,23 +265,23 @@ func lexLeftParen(l *Lexer) stateFn {
 		l.eat()
 		return lexComment
 	}
-	l.emit(token.LParen)
+	l.emit(LParen)
 	return lex
 }
 
 func lexAdditiveOp(l *Lexer) stateFn {
-	op := token.Plus
+	op := Plus
 	if l.top == '-' {
-		op = token.Minus
+		op = Minus
 	}
 	l.eat()
 
 	switch l.top {
 	case '>':
-		if op == token.Minus {
+		if op == Minus {
 			// Lexing '->'
 			l.eat()
-			l.emit(token.MinusGreater)
+			l.emit(MinusGreater)
 		} else {
 			l.emit(op)
 		}
@@ -257,9 +293,9 @@ func lexAdditiveOp(l *Lexer) stateFn {
 }
 
 func lexMultOp(l *Lexer) stateFn {
-	op := token.Star
+	op := Star
 	if l.top == '/' {
-		op = token.Slash
+		op = Slash
 	}
 	l.eat()
 	l.emit(op)
@@ -273,9 +309,9 @@ func lexBar(l *Lexer) stateFn {
 	switch l.top {
 	case '|':
 		l.eat()
-		l.emit(token.BarBar)
+		l.emit(BarBar)
 	default:
-		l.emit(token.Bar)
+		l.emit(Bar)
 	}
 
 	return lex
@@ -290,7 +326,7 @@ func lexLogicalAnd(l *Lexer) stateFn {
 		return nil
 	}
 	l.eat()
-	l.emit(token.AndAnd)
+	l.emit(AndAnd)
 
 	return lex
 }
@@ -300,15 +336,15 @@ func lexLess(l *Lexer) stateFn {
 	switch l.top {
 	case '>':
 		l.eat()
-		l.emit(token.LessGreater)
+		l.emit(LessGreater)
 	case '=':
 		l.eat()
-		l.emit(token.LessEqual)
+		l.emit(LessEqual)
 	case '-':
 		l.eat()
-		l.emit(token.LessMinus)
+		l.emit(LessMinus)
 	default:
-		l.emit(token.Less)
+		l.emit(Less)
 	}
 	return lex
 }
@@ -318,16 +354,16 @@ func lexGreater(l *Lexer) stateFn {
 	switch l.top {
 	case '=':
 		l.eat()
-		l.emit(token.GreaterEqual)
+		l.emit(GreaterEqual)
 	default:
-		l.emit(token.Greater)
+		l.emit(Greater)
 	}
 	return lex
 }
 
 // e.g. 123.45e10
 func lexNumber(l *Lexer) stateFn {
-	tok := token.Int
+	tok := Int
 
 	// Eat first digit. It's known as digit in lex()
 	l.eat()
@@ -337,7 +373,7 @@ func lexNumber(l *Lexer) stateFn {
 
 	// Note: Allow 1. as 1.0
 	if l.top == '.' {
-		tok = token.Float
+		tok = Float
 		l.eat()
 		for isDigit(l.top) {
 			l.eat()
@@ -345,7 +381,7 @@ func lexNumber(l *Lexer) stateFn {
 	}
 
 	if l.top == 'e' || l.top == 'E' {
-		tok = token.Float
+		tok = Float
 		l.eat()
 		if l.top == '+' || l.top == '-' {
 			l.eat()
@@ -378,7 +414,7 @@ func lexIdent(l *Lexer) stateFn {
 	if !l.eatIdent() {
 		return nil
 	}
-	i := string(l.src.Code[l.start.Offset:l.current.Offset])
+	i := l.Text()
 	l.emitIdent(i)
 	return lex
 }
@@ -393,7 +429,7 @@ func lexStringLiteral(l *Lexer) stateFn {
 		}
 		if l.top == '"' {
 			l.eat()
-			l.emit(token.StringLiteral)
+			l.emit(StringLiteral)
 			return lex
 		}
 		l.eat()
@@ -404,77 +440,78 @@ func lexStringLiteral(l *Lexer) stateFn {
 
 func lexLBracket(l *Lexer) stateFn {
 	l.eat() // Eat '['
-	l.emit(token.LBracket)
+	l.emit(LBracket)
 	return lex
 }
 
+// lex is the initial state transformation function. It should eat/consume at least one char to move ahead,
+// or stop when eof is true.
 func lex(l *Lexer) stateFn {
-	for {
-		if l.eof {
-			l.emit(token.Eof)
-			return nil
-		}
+	if l.eof {
+		return nil
+	}
+	switch l.top {
+	case '(':
+		return lexLeftParen
+	case ')':
+		l.eat()
+		l.emit(RParen)
+	case '+':
+		return lexAdditiveOp
+	case '-':
+		return lexAdditiveOp
+	case '*':
+		return lexMultOp
+	case '/':
+		return lexMultOp
+	case '%':
+		l.eat()
+		l.emit(Percent)
+	case '=':
+		l.eat()
 		switch l.top {
-		case '(':
-			return lexLeftParen
-		case ')':
-			l.eat()
-			l.emit(token.RParen)
-		case '+':
-			return lexAdditiveOp
-		case '-':
-			return lexAdditiveOp
-		case '*':
-			return lexMultOp
-		case '/':
-			return lexMultOp
-		case '%':
-			l.eat()
-			l.emit(token.Percent)
-		case '=':
-			l.eat()
-			switch l.top {
-			case '>':
-				l.eat()
-				l.emit(token.Arrow)
-			}
-			l.emit(token.Equal)
-		case '<':
-			return lexLess
 		case '>':
-			return lexGreater
-		case ',':
 			l.eat()
-			l.emit(token.Comma)
-		case '.':
-			l.eat()
-			l.emit(token.Dot)
-		case ';':
-			l.eat()
-			l.emit(token.Semicolon)
-		case '|':
-			return lexBar
-		case '&':
-			return lexLogicalAnd
-		case '"':
-			return lexStringLiteral
-		case ':':
-			l.eat()
-			l.emit(token.Colon)
-		case '[':
-			return lexLBracket
-		case ']':
-			l.eat()
-			l.emit(token.RBracket)
+			l.emit(Arrow)
 		default:
-			switch {
-			case unicode.IsSpace(l.top):
-				l.consume()
-			case isDigit(l.top):
-				return lexNumber
-			default:
-				return lexIdent
-			}
+			l.emit(Equal)
+		}
+	case '<':
+		return lexLess
+	case '>':
+		return lexGreater
+	case ',':
+		l.eat()
+		l.emit(Comma)
+	case '.':
+		l.eat()
+		l.emit(Dot)
+	case ';':
+		l.eat()
+		l.emit(Semicolon)
+	case '|':
+		return lexBar
+	case '&':
+		return lexLogicalAnd
+	case '"':
+		return lexStringLiteral
+	case ':':
+		l.eat()
+		l.emit(Colon)
+	case '[':
+		return lexLBracket
+	case ']':
+		l.eat()
+		l.emit(RBracket)
+	default:
+		switch {
+		case unicode.IsSpace(l.top):
+			l.consume()
+		case isDigit(l.top):
+			return lexNumber
+		default:
+			return lexIdent
 		}
 	}
+	return lex
 }
