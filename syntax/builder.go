@@ -61,12 +61,34 @@ func NewNeg(tok *token.Token, child ast.Exp) *ast.Neg {
 	return &ast.Neg{HasToken: ast.HasToken{Token: tok}, Child: child}
 }
 
-func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) ast.Exp {
+func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) *ast.InfixApp {
 	return &ast.InfixApp{
 		Left:  left,
 		Op:    ast.Op{Name: tok.Value},
 		Right: right,
 	}
+}
+
+func NewTuple(left, right ast.Exp) *ast.Tuple {
+	var result []ast.Exp
+	switch left.(type) {
+	case *ast.Tuple:
+		result = append(left.(*ast.Tuple).Elements, right)
+	default:
+		result = []ast.Exp{left, right}
+	}
+	return &ast.Tuple{Elements: result}
+}
+
+func NewSequence(left, right ast.Exp) *ast.Sequence {
+	var result []ast.Exp
+	switch left.(type) {
+	case *ast.Sequence:
+		result = append(left.(*ast.Sequence).Elements, right)
+	default:
+		result = []ast.Exp{left, right}
+	}
+	return &ast.Sequence{Elements: result}
 }
 
 func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {

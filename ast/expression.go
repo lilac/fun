@@ -71,7 +71,7 @@ func (a Apply) End() locerr.Pos {
 }
 
 func (a Apply) String() string {
-	return fmt.Sprintf("%s %s", parenthesis(a, a.Fun), parenthesisRight(a, a.Arg))
+	return fmt.Sprintf("%s %s", parenthesis(a, a.Fun), parenthesis(a, a.Arg))
 }
 
 func (t Tuple) Start() locerr.Pos {
@@ -88,7 +88,7 @@ func (t Tuple) String() string {
 	for i, t := range t.Elements {
 		elements[i] = t.String()
 	}
-	return "(" + strings.Join(elements, ", ") + ")"
+	return strings.Join(elements, ", ")
 }
 
 func (s Sequence) Start() locerr.Pos {
@@ -103,9 +103,9 @@ func (s Sequence) End() locerr.Pos {
 func (s Sequence) String() string {
 	elements := make([]string, len(s.Elements))
 	for i, t := range s.Elements {
-		elements[i] = t.String()
+		elements[i] = parenthesis(s, t)
 	}
-	return "(" + strings.Join(elements, "; ") + ")"
+	return strings.Join(elements, "; ")
 }
 
 func (i IfThen) String() string {
@@ -174,7 +174,7 @@ func (n Neg) End() locerr.Pos {
 }
 
 func (n InfixApp) String() string {
-	return fmt.Sprintf("%s %s %s", parenthesis(n, n.Left), n.Op, parenthesisRight(n, n.Right))
+	return fmt.Sprintf("%s %s %s", parenthesis(n, n.Left), n.Op, parenthesis(n, n.Right))
 }
 
 func (n InfixApp) Start() locerr.Pos {
