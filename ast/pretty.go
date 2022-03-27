@@ -42,14 +42,6 @@ func operatorPrecedence(op string) uint8 {
 }
 
 func parenthesis(parent, child Exp) string {
-	if precedence(parent) < precedence(child) {
-		return fmt.Sprintf("(%v)", child)
-	} else {
-		return child.String()
-	}
-}
-
-func parenthesisRight(parent, child Exp) string {
 	if precedence(parent) <= precedence(child) {
 		return fmt.Sprintf("(%v)", child)
 	} else {

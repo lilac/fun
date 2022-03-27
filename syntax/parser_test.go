@@ -75,12 +75,17 @@ func TestPrecedence(t *testing.T) {
 	lines := []string{
 		"val a = (1 + 2) * 3",
 		"val a = (1 + 2) * 3 - 1 > 0 && false",
-		"val a = 1 + 3 * 4 / 2",
+		"val a = 1 + (3 * 4) / 2",
 		"val a = 1 + 3 * (4 / 2)",
 		"val a = not false",
 		"val a = not (3 > 0)",
+		"val a = not false && true",
 		"val a = -3",
+		"val a = -3 - 1",
 		"val a = -(3 - 1)",
+		"val a = (1, 2, 1 > 0 || false) = 3",
+		"val a = (1; 2; 1 + 2 * 3) + 3",
+		"val a = (1, 2); (3, 4)",
 		//"val a = if true then 1 else 0 + 1",
 	}
 	src := NewDummySource(strings.Join(lines, "\n"))

@@ -70,7 +70,7 @@ import (
 %token<token> LBracket
 %token<token> RBracket
 
-%left Comma
+%left Comma Semicolon
 %left BarBar
 %left AndAnd
 %left Equal LessGreater Less Greater LessEqual GreaterEqual
@@ -143,6 +143,11 @@ exp:
 	{ $$ = NewNeg($1, $2) }
 |	LParen exp RParen
 	{ $$ = $2 }
+
+|	exp Comma exp
+	{ $$ = NewTuple($1, $3) }
+|	exp Semicolon exp
+	{ $$ = NewSequence($1, $3) }
 
 con:
 	LParen RParen
