@@ -48,19 +48,19 @@ type Char struct {
 	Value rune
 }
 
-func (h *HasToken) Start() locerr.Pos {
+func (h HasToken) Start() locerr.Pos {
 	return h.Token.Start()
 }
 
-func (h *HasToken) End() locerr.Pos {
+func (h HasToken) End() locerr.Pos {
 	return h.Token.End()
 }
 
-func (u *Unit) String() string {
+func (u Unit) String() string {
 	return "()"
 }
 
-func (b *Bool) String() string {
+func (b Bool) String() string {
 	return strconv.FormatBool(b.Value)
 }
 

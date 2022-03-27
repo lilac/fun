@@ -3,16 +3,16 @@ package syntax
 import (
 	"fmt"
 	"github.com/lilac/fun-lang/ast"
+	"github.com/lilac/fun-lang/token"
 	"strconv"
 )
-import "github.com/lilac/fun-lang/token"
 
 func NewUnit(tok *token.Token) *ast.Unit {
-	return &ast.Unit{ast.HasToken{tok}}
+	return &ast.Unit{HasToken: ast.HasToken{Token: tok}}
 }
 
 func NewBool(tok *token.Token) *ast.Bool {
-	return &ast.Bool{ast.HasToken{tok}, tok.Value == "true"}
+	return &ast.Bool{HasToken: ast.HasToken{Token: tok}, Value: tok.Value == "true"}
 }
 
 type ErrorFun = func(format string /*, args ...interface{}*/)
@@ -54,7 +54,11 @@ func NewVar(tok *token.Token) *ast.Var {
 }
 
 func NewNot(tok *token.Token, child ast.Exp) *ast.Not {
-	return &ast.Not{ast.HasToken{tok}, child}
+	return &ast.Not{HasToken: ast.HasToken{Token: tok}, Child: child}
+}
+
+func NewNeg(tok *token.Token, child ast.Exp) *ast.Neg {
+	return &ast.Neg{HasToken: ast.HasToken{Token: tok}, Child: child}
 }
 
 func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) ast.Exp {
@@ -65,7 +69,7 @@ func NewInfixApp(left ast.Exp, tok *token.Token, right ast.Exp) ast.Exp {
 	}
 }
 
-func NewValDec(tok *token.Token, body ast.Exp) *ast.ValDec {
+func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 	return &ast.ValDec{
 		Vars: []ast.Var{},
 		Arg:  ast.Arg{Id: ast.Identifier{Name: tok.Value}, Type: nil},

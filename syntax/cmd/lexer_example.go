@@ -45,7 +45,7 @@ func LexFile(src *syntax.Source) {
 			fmt.Printf("Lexing invalid token at %v\n", tok.Start())
 			return
 		default:
-			fmt.Printf("Token: %s", tok.Value)
+			fmt.Printf("%s ", tok.Value)
 		}
 	}
 

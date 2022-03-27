@@ -29,8 +29,6 @@ type Neg struct {
 	Child Exp
 }
 
-type Op Identifier
-
 type InfixApp struct {
 	Left  Exp
 	Op    Op
@@ -64,16 +62,16 @@ type TypeAnnotation struct {
 	EndToken token.Token
 }
 
-func (a *Apply) Start() locerr.Pos {
+func (a Apply) Start() locerr.Pos {
 	return a.Fun.Start()
 }
 
-func (a *Apply) End() locerr.Pos {
+func (a Apply) End() locerr.Pos {
 	return a.Arg.End()
 }
 
-func (a *Apply) String() string {
-	return fmt.Sprintf("%s %s", a.Fun, a.Arg)
+func (a Apply) String() string {
+	return fmt.Sprintf("%s %s", parenthesis(a, a.Fun), parenthesisRight(a, a.Arg))
 }
 
 func (t Tuple) Start() locerr.Pos {
@@ -152,7 +150,7 @@ func (t TypeAnnotation) String() string {
 }
 
 func (n Not) String() string {
-	return fmt.Sprintf("not %s", n.Child.String())
+	return fmt.Sprintf("not %s", parenthesis(n, n.Child))
 }
 
 func (n Not) Start() locerr.Pos {
@@ -164,8 +162,7 @@ func (n Not) End() locerr.Pos {
 }
 
 func (n Neg) String() string {
-	return fmt.Sprintf("-%s", n.Child.String())
-
+	return fmt.Sprintf("-%s", parenthesis(n, n.Child))
 }
 
 func (n Neg) Start() locerr.Pos {
@@ -177,7 +174,7 @@ func (n Neg) End() locerr.Pos {
 }
 
 func (n InfixApp) String() string {
-	return fmt.Sprintf("%s %s %s", n.Left, n.Op, n.Right)
+	return fmt.Sprintf("%s %s %s", parenthesis(n, n.Left), n.Op, parenthesisRight(n, n.Right))
 }
 
 func (n InfixApp) Start() locerr.Pos {
