@@ -91,6 +91,15 @@ func NewSequence(left, right ast.Exp) *ast.Sequence {
 	return &ast.Sequence{Elements: result}
 }
 
+func NewIfThen(tok *token.Token, cond, then, els ast.Exp) *ast.IfThen {
+	return &ast.IfThen{
+		HasToken: ast.HasToken{Token: tok},
+		Cond:     cond,
+		Then:     then,
+		Else:     els,
+	}
+}
+
 func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 	return &ast.ValDec{
 		Vars: []ast.Var{},

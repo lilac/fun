@@ -70,6 +70,7 @@ import (
 %token<token> LBracket
 %token<token> RBracket
 
+%right prec_if
 %left Comma Semicolon
 %left BarBar
 %left AndAnd
@@ -148,6 +149,10 @@ exp:
 	{ $$ = NewTuple($1, $3) }
 |	exp Semicolon exp
 	{ $$ = NewSequence($1, $3) }
+
+|	If exp Then exp Else exp
+	%prec prec_if
+	{ $$ = NewIfThen($1, $2, $4, $6) }
 
 con:
 	LParen RParen
