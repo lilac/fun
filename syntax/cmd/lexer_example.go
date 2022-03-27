@@ -11,7 +11,7 @@ import (
 const usageDoc = `Usage: go run lexer_example [src]`
 
 func usage() {
-	fmt.Fprintln(os.Stderr, usageDoc)
+	fmt.Println(usageDoc)
 	flag.PrintDefaults()
 }
 
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error on opening source: %s\n", err.Error())
+		fmt.Printf("Error on opening source: %s\n", err.Error())
 		os.Exit(4)
 	}
 	LexFile(src)
