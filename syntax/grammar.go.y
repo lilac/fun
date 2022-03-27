@@ -153,6 +153,8 @@ exp:
 |	If exp Then exp Else exp
 	%prec prec_if
 	{ $$ = NewIfThen($1, $2, $4, $6) }
+|	Let dec In exp End
+	{ $$ = NewLet($1, $2, $4) }
 
 con:
 	LParen RParen

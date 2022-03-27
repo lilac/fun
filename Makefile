@@ -8,5 +8,5 @@ syntax/grammar.go: syntax/grammar.go.y
 build: syntax/grammar.go
 	go build
 
-test:
+test: build
 	go test ./...

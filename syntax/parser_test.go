@@ -87,6 +87,7 @@ func TestPrecedence(t *testing.T) {
 		"val a = (1; 2; 1 + 2 * 3) + 3",
 		"val a = (1, 2); (3, 4)",
 		"val a = if 1 > 0; true then 1 else 0 + 1",
+		"val a = let val x = 1 val y = \"ab\" in x > 0; 1 end",
 	}
 	src := NewDummySource(strings.Join(lines, "\n"))
 	module, err := Parse(src)
