@@ -70,3 +70,25 @@ func TestParseDecs(t *testing.T) {
 	}
 	assert.Equal(t, lines, actual)
 }
+
+func TestPrecedence(t *testing.T) {
+	lines := []string{
+		"val a = (1 + 2) * 3",
+		"val a = (1 + 2) * 3 - 1 > 0 && false",
+		"val a = 1 + 3 * 4 / 2",
+		"val a = 1 + 3 * (4 / 2)",
+		"val a = not false",
+		"val a = not (3 > 0)",
+		"val a = -3",
+		"val a = -(3 - 1)",
+		//"val a = if true then 1 else 0 + 1",
+	}
+	src := NewDummySource(strings.Join(lines, "\n"))
+	module, err := Parse(src)
+	if err != nil {
+		t.Fatal("Unexpected error:", err)
+	}
+	for i, d := range module.Decs {
+		assert.Equal(t, lines[i], d.String())
+	}
+}

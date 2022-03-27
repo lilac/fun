@@ -70,6 +70,16 @@ import (
 %token<token> LBracket
 %token<token> RBracket
 
+%left Comma
+%left BarBar
+%left AndAnd
+%left Equal LessGreater Less Greater LessEqual GreaterEqual
+%left Plus Minus
+%left Star Slash Percent
+%left prec_app
+%right prec_unary_minus Not
+%left Dot
+
 %type<mod> module
 %type<dec> dec
 %type<exp> exp con
@@ -99,10 +109,40 @@ exp:
 	{ $$ = $1 }
 |	Ident
 	{ $$ = NewVar($1) }
-|	exp Op exp
+|	exp Plus exp
 	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Minus exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Star exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Slash exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Percent exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Equal exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp LessGreater exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Less exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp LessEqual exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp Greater exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp GreaterEqual exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp AndAnd exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+|	exp BarBar exp
+	{ $$ = NewInfixApp($1, $2, $3) }
+
 |	Not exp
 	{ $$ = NewNot($1, $2) }
+|	Minus exp
+	%prec prec_unary_minus
+	{ $$ = NewNeg($1, $2) }
+|	LParen exp RParen
+	{ $$ = $2 }
 
 con:
 	LParen RParen
@@ -117,6 +157,5 @@ con:
 	{ $$ = NewString($1, funlex.Error) }
 %%
 
-// The parser expects the lexer to return 0 on EOF.  Give it a name
-// for clarity.
+// The parser expects the lexer to return 0 on the end of file.
 const Eof = 0

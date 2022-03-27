@@ -37,3 +37,20 @@ func TestBool(t *testing.T) {
 	assert.Equal(t, node.String(), "true")
 	assert.Equal(t, node.Value, boolValue)
 }
+
+func TestPrecedence(t *testing.T) {
+	add := InfixApp{
+		Left:  Int{},
+		Op:    Op{Name: Add},
+		Right: Int{},
+	}
+	mul := InfixApp{Int{}, Op{Name: "*"}, Int{}}
+	var zero = uint8(0)
+	assert.Greater(t, precedence(mul), zero)
+	assert.Greater(t, precedence(&mul), zero)
+	assert.Greater(t, precedence(add), zero)
+	assert.Greater(t, precedence(&add), zero)
+	assert.Greater(t, precedence(Apply{}), zero)
+	assert.Greater(t, precedence(&Apply{}), zero)
+	assert.Greater(t, precedence(add), precedence(mul))
+}
