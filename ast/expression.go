@@ -53,7 +53,7 @@ type IfThen struct {
 type LetIn struct {
 	HasToken
 	Decs []Dec
-	Body []Exp
+	Body Exp
 }
 
 type TypeAnnotation struct {
@@ -121,7 +121,12 @@ func (i IfThen) End() locerr.Pos {
 }
 
 func (l LetIn) String() string {
-	return "Let"
+	elements := make([]string, len(l.Decs))
+	for i, dec := range l.Decs {
+		elements[i] = dec.String()
+	}
+	decs := strings.Join(elements, " ")
+	return fmt.Sprintf("let %s in %v end", decs, l.Body)
 }
 
 func (l LetIn) Start() locerr.Pos {
@@ -129,8 +134,7 @@ func (l LetIn) Start() locerr.Pos {
 }
 
 func (l LetIn) End() locerr.Pos {
-	last := len(l.Body) - 1
-	return l.Body[last].End()
+	return l.Body.End()
 }
 
 func (t TypeAnnotation) Start() locerr.Pos {

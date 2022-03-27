@@ -100,6 +100,14 @@ func NewIfThen(tok *token.Token, cond, then, els ast.Exp) *ast.IfThen {
 	}
 }
 
+func NewLet(tok *token.Token, dec []ast.Dec, exp ast.Exp) *ast.LetIn {
+	return &ast.LetIn{
+		HasToken: ast.HasToken{Token: tok},
+		Decs:     dec,
+		Body:     exp,
+	}
+}
+
 func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 	return &ast.ValDec{
 		Vars: []ast.Var{},
