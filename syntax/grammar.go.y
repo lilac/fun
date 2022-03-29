@@ -18,6 +18,8 @@ import (
 %union {
 	token *token.Token
 	exp ast.Exp
+	pattern ast.Pattern
+	match []ast.Match
 	dec []ast.Dec
 	mod *ast.Module
 }
@@ -71,6 +73,9 @@ import (
 %token<token> RBracket
 
 %right prec_if
+%right prec_fn
+%left Bar
+%right Arrow
 %left Comma Semicolon
 %left BarBar
 %left AndAnd
@@ -84,6 +89,8 @@ import (
 %type<mod> module
 %type<dec> dec
 %type<exp> exp con
+%type<pattern> pattern
+%type<match> match
 
 %start module
 
@@ -155,6 +162,27 @@ exp:
 	{ $$ = NewIfThen($1, $2, $4, $6) }
 |	Let dec In exp End
 	{ $$ = NewLet($1, $2, $4) }
+|	Fn match
+	%prec prec_fn
+	{ $$ = NewFn($1, $2) }
+
+match:
+	pattern Arrow exp
+	{
+		m := NewMatch($1, $3)
+		$$ = []ast.Match{*m}
+	}
+|	match Bar pattern Arrow exp
+	{
+		m := NewMatch($3, $5)
+		$$ = append($1, *m)
+	}
+
+pattern:
+	con
+	{ $$ = NewConstPattern($1) }
+|	Ident
+	{ $$ = NewVarPattern($1) }
 
 con:
 	LParen RParen

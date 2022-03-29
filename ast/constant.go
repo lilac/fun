@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/types"
 	"github.com/rhysd/locerr"
 	"strconv"
 )
@@ -14,6 +15,11 @@ import (
 //     float	floating point
 //     char	character
 //     string	string
+
+type Constant interface {
+	String() string
+	Type() types.Type
+}
 
 type HasToken struct {
 	Token *token.Token
@@ -60,22 +66,46 @@ func (u Unit) String() string {
 	return "()"
 }
 
+func (u Unit) Type() types.Type {
+	return types.UnitType
+}
+
 func (b Bool) String() string {
 	return strconv.FormatBool(b.Value)
+}
+
+func (b Bool) Type() types.Type {
+	return types.BoolType
 }
 
 func (i Int) String() string {
 	return strconv.FormatInt(i.Value, 10)
 }
 
+func (i Int) Type() types.Type {
+	return types.IntType
+}
+
 func (f Float) String() string {
 	return fmt.Sprintf("%f", f.Value)
+}
+
+func (f Float) Type() types.Type {
+	return types.FloatType
 }
 
 func (s String) String() string {
 	return fmt.Sprintf(`"%s"`, s.Value)
 }
 
+func (String) Type() types.Type {
+	return types.StringType
+}
+
 func (c Char) String() string {
 	return string(c.Value)
+}
+
+func (Char) Type() types.Type {
+	return types.CharType
 }
