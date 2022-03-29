@@ -108,6 +108,28 @@ func NewLet(tok *token.Token, dec []ast.Dec, exp ast.Exp) *ast.LetIn {
 	}
 }
 
+func NewVarPattern(tok *token.Token) *ast.VarPattern {
+	return &ast.VarPattern{HasToken: ast.HasToken{Token: tok}, Id: ast.Identifier{Name: tok.Value}}
+}
+
+func NewConstPattern(exp ast.Exp) *ast.ConstPattern {
+	return &ast.ConstPattern{Constant: exp.(ast.Constant)}
+}
+
+func NewMatch(pattern ast.Pattern, exp ast.Exp) *ast.Match {
+	return &ast.Match{
+		Pattern: pattern,
+		Exp:     exp,
+	}
+}
+
+func NewFn(tok *token.Token, matches []ast.Match) *ast.Fn {
+	return &ast.Fn{
+		HasToken: ast.HasToken{Token: tok},
+		Matches:  matches,
+	}
+}
+
 func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 	return &ast.ValDec{
 		Vars: []ast.Var{},

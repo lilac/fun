@@ -11,11 +11,6 @@ type Dec interface {
 	String() string
 }
 
-type Arg struct {
-	Id   Identifier
-	Type types.Type
-}
-
 type ValDec struct {
 	Vars []Var // type variables
 	Arg  Arg
@@ -32,14 +27,6 @@ type FunDec struct {
 
 type Module struct {
 	Decs []Dec
-}
-
-func (a Arg) String() string {
-	if a.Type != nil {
-		return fmt.Sprintf("%s : %s", a.Id.Name, a.Type.String())
-	} else {
-		return a.Id.Name
-	}
 }
 
 func (v ValDec) Kind() string {

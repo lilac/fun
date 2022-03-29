@@ -8,9 +8,11 @@ import (
 
 var (
 	UnitType   = PrimitiveType("unit")
+	BoolType   = PrimitiveType("bool")
 	IntType    = PrimitiveType("int")
 	FloatType  = PrimitiveType("float")
 	StringType = PrimitiveType("string")
+	CharType   = PrimitiveType("char")
 )
 
 type Type interface {

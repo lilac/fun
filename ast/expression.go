@@ -56,6 +56,16 @@ type LetIn struct {
 	Body Exp
 }
 
+type Arg struct {
+	Id   Identifier
+	Type types.Type
+}
+
+type Fn struct {
+	HasToken
+	Matches []Match
+}
+
 type TypeAnnotation struct {
 	Exp      Exp
 	Type     types.Type
@@ -187,4 +197,25 @@ func (n InfixApp) Start() locerr.Pos {
 
 func (n InfixApp) End() locerr.Pos {
 	return n.Right.End()
+}
+
+func (a Arg) String() string {
+	if a.Type != nil {
+		return fmt.Sprintf("(%v: %v)", a.Id, a.Type)
+	}
+	return a.Id.String()
+}
+
+func (f Fn) End() locerr.Pos {
+	l := len(f.Matches)
+	return f.Matches[l-1].Exp.End()
+}
+
+func (f Fn) String() string {
+	elements := make([]string, len(f.Matches))
+	for i, m := range f.Matches {
+		elements[i] = m.String()
+	}
+	s := strings.Join(elements, " | ")
+	return fmt.Sprintf("fn %s", s)
 }
