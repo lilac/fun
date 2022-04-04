@@ -19,7 +19,9 @@ import (
 	token *token.Token
 	exp ast.Exp
 	pattern ast.Pattern
+	patterns []ast.Pattern
 	match []ast.Match
+	funBind	[]ast.FunBind
 	dec []ast.Dec
 	mod *ast.Module
 }
@@ -91,6 +93,8 @@ import (
 %type<exp> exp con
 %type<pattern> pattern
 %type<match> match
+%type<patterns> patterns
+%type<funBind> fun_bind
 
 %start module
 
@@ -111,6 +115,29 @@ dec:
  		dec := NewValDec($3, $5)
  		$$ = append($1, dec)
  	}
+|	dec Fun fun_bind
+	{
+		dec := NewFunDec($3)
+		$$ = append($1, dec)
+	}
+
+fun_bind:
+	Ident patterns Equal exp
+	{
+		bind := NewFunBind($1, $2, nil, $4)
+		$$ = []ast.FunBind{*bind}
+	}
+|	fun_bind Bar Ident patterns Equal exp
+	{
+		bind := NewFunBind($3, $4, nil, $6)
+        	$$ = append($1, *bind)
+	}
+
+patterns:
+	pattern
+	{ $$ = []ast.Pattern{$1} }
+|	patterns pattern
+	{ $$ = append($1, $2) }
 
 exp:
 	con

@@ -1,6 +1,10 @@
 package ast
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/lilac/fun-lang/types"
+	"strings"
+)
 
 type Pattern interface {
 	String() string
@@ -21,6 +25,13 @@ type Match struct {
 	Exp     Exp
 }
 
+type FunBind struct {
+	Id         Identifier
+	Patterns   []Pattern
+	ResultType types.Type
+	Exp        Exp
+}
+
 func (c ConstPattern) String() string {
 	return c.Constant.String()
 }
@@ -39,4 +50,16 @@ func (v VarPattern) IsPattern() bool {
 
 func (m Match) String() string {
 	return fmt.Sprintf("%v => %v", m.Pattern, m.Exp)
+}
+
+func (b FunBind) String() string {
+	patterns := make([]string, len(b.Patterns))
+	for i, pattern := range b.Patterns {
+		patterns[i] = pattern.String()
+	}
+	pat := strings.Join(patterns, " ")
+	if b.ResultType != nil {
+		return fmt.Sprintf("%v %s : %v = %v", b.Id, pat, b.ResultType, b.Exp)
+	}
+	return fmt.Sprintf("%v %s = %v", b.Id, pat, b.Exp)
 }

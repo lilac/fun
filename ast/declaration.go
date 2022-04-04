@@ -2,7 +2,6 @@ package ast
 
 import (
 	"fmt"
-	"github.com/lilac/fun-lang/types"
 	"strings"
 )
 
@@ -18,11 +17,8 @@ type ValDec struct {
 }
 
 type FunDec struct {
-	Vars       []Var // type variables
-	Id         Identifier
-	Args       []Arg
-	ResultType types.Type
-	Body       Exp
+	Vars  []Var // type variables
+	Binds []FunBind
 }
 
 type Module struct {
@@ -42,10 +38,10 @@ func (f FunDec) Kind() string {
 }
 
 func (f FunDec) String() string {
-	args := make([]string, len(f.Args))
-	for i, arg := range f.Args {
-		args[i] = "(" + arg.String() + ")"
+	binds := make([]string, len(f.Binds))
+	for i, bind := range f.Binds {
+		binds[i] = bind.String()
 	}
-	argStr := strings.Join(args, " ")
-	return fmt.Sprintf("fun %s %s = %s", f.Id, argStr, f.Body.String())
+	s := strings.Join(binds, " | ")
+	return fmt.Sprintf("fun %s", s)
 }
