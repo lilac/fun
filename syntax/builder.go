@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lilac/fun-lang/ast"
 	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/types"
 	"strconv"
 )
 
@@ -135,5 +136,21 @@ func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 		Vars: []ast.Var{},
 		Arg:  ast.Arg{Id: ast.Identifier{Name: tok.Value}, Type: nil},
 		Body: body,
+	}
+}
+
+func NewFunBind(tok *token.Token, patterns []ast.Pattern, ty types.Type, body ast.Exp) *ast.FunBind {
+	return &ast.FunBind{
+		Id:         ast.Identifier{Name: tok.Value},
+		Patterns:   patterns,
+		ResultType: ty,
+		Exp:        body,
+	}
+}
+
+func NewFunDec(binds []ast.FunBind) *ast.FunDec {
+	return &ast.FunDec{
+		Vars:  []ast.Var{},
+		Binds: binds,
 	}
 }
