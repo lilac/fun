@@ -84,13 +84,13 @@ import (
 %left Equal LessGreater Less Greater LessEqual GreaterEqual
 %left Plus Minus
 %left Star Slash Percent
-%left prec_app
 %right prec_unary_minus Not
+%left prec_app
 %left Dot
 
 %type<mod> module
 %type<dec> dec
-%type<exp> exp con
+%type<exp> exp con simple_exp
 %type<pattern> pattern
 %type<match> match
 %type<patterns> patterns
@@ -139,11 +139,17 @@ patterns:
 |	patterns pattern
 	{ $$ = append($1, $2) }
 
-exp:
+simple_exp:
 	con
 	{ $$ = $1 }
 |	Ident
 	{ $$ = NewVar($1) }
+|	LParen exp RParen
+	{ $$ = $2 }
+
+exp:
+	simple_exp
+	{ $$ = $1 }
 |	exp Plus exp
 	{ $$ = NewInfixApp($1, $2, $3) }
 |	exp Minus exp
@@ -176,13 +182,14 @@ exp:
 |	Minus exp
 	%prec prec_unary_minus
 	{ $$ = NewNeg($1, $2) }
-|	LParen exp RParen
-	{ $$ = $2 }
 
 |	exp Comma exp
 	{ $$ = NewTuple($1, $3) }
 |	exp Semicolon exp
 	{ $$ = NewSequence($1, $3) }
+|	exp simple_exp
+	%prec prec_app
+	{ $$ = &ast.Apply{$1, $2} }
 
 |	If exp Then exp Else exp
 	%prec prec_if

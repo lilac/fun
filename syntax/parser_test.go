@@ -89,8 +89,9 @@ func TestPrecedence(t *testing.T) {
 		"val a = if 1 > 0; true then 1 else 0 + 1",
 		"val a = let val x = 1 val y = \"ab\" in x > 0; 1 end",
 		"val a = if 1 > 0 then 1 else fn true => 1 | false => 0",
-		//"val a = f (a - 1) + f (a - 2)",
-		"fun fib 0 = 0 | fib 1 = 1 | fib x = x + 1",
+		"val a = (1 + f (a - 1)) + f (a - 2)", // function application and arithmetic operations.
+		"val a = f (1, 2)",                    // tuple as function argument.
+		"fun fib 0 = 0 | fib 1 = 1 | fib x = fib (x - 1) + fib (x - 2)",
 	}
 	src := NewDummySource(strings.Join(lines, "\n"))
 	module, err := Parse(src)
