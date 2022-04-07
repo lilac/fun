@@ -1,3 +1,5 @@
+EXE := fun
+
 # install required dependencies
 dep:
 	go install golang.org/x/tools/cmd/goyacc@latest
@@ -5,8 +7,13 @@ dep:
 syntax/grammar.go: syntax/grammar.go.y
 	go generate
 
-build: syntax/grammar.go
-	go build
+build: $(EXE)
+
+$(EXE): syntax/grammar.go
+	go build -o $(EXE)
 
 test: build
 	go test ./...
+
+install: build
+	cp $(EXE) $(GOPATH)/bin/
