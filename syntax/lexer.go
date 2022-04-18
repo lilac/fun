@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/lilac/fun-lang/token"
 	"io"
-	"regexp"
 	"unicode"
 	"unicode/utf8"
 )
@@ -109,10 +108,6 @@ func (l *Lexer) emit(kind int) {
 }
 
 func (l *Lexer) emitIdent(ident string) {
-	opReg := regexp.MustCompile(`[+\-*/^=<>]+`)
-	if opReg.MatchString(ident) {
-		l.emit(Op)
-	}
 	if len(ident) == 1 {
 		// Shortcut because no keyword is one character. It must be identifier
 		l.emit(Ident)

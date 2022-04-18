@@ -31,7 +31,6 @@ import (
 %token<token> LParen
 %token<token> RParen
 %token<token> Ident
-%token<token> Op
 %token<token> Bool
 %token<token> Not
 %token<token> Int
