@@ -141,6 +141,7 @@ func NewValDec(tok *token.Token, body ast.Exp) ast.Dec {
 
 func NewFunBind(tok *token.Token, patterns []ast.Pattern, ty types.Type, body ast.Exp) *ast.FunBind {
 	return &ast.FunBind{
+		HasToken:   ast.HasToken{Token: tok},
 		Id:         ast.Identifier{Name: tok.Value},
 		Patterns:   patterns,
 		ResultType: ty,

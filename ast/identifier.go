@@ -22,6 +22,9 @@ type Var struct {
 }
 
 func (i Identifier) String() string {
+	if len(i.Value) > 0 {
+		return i.Value
+	}
 	return i.Name
 }
 

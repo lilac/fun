@@ -17,7 +17,7 @@ import (
 //     string	string
 
 type Constant interface {
-	String() string
+	Exp
 	Type() types.Type
 }
 

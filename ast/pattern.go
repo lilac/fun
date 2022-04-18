@@ -3,16 +3,17 @@ package ast
 import (
 	"fmt"
 	"github.com/lilac/fun-lang/types"
+	"github.com/rhysd/locerr"
 	"strings"
 )
 
 type Pattern interface {
-	String() string
+	Exp
 	IsPattern() bool
 }
 
 type ConstPattern struct {
-	Constant Constant
+	Constant
 }
 
 type VarPattern struct {
@@ -26,6 +27,7 @@ type Match struct {
 }
 
 type FunBind struct {
+	HasToken
 	Id         Identifier
 	Patterns   []Pattern
 	ResultType types.Type
@@ -62,4 +64,8 @@ func (b FunBind) String() string {
 		return fmt.Sprintf("%v %s : %v = %v", b.Id, pat, b.ResultType, b.Exp)
 	}
 	return fmt.Sprintf("%v %s = %v", b.Id, pat, b.Exp)
+}
+
+func (b FunBind) End() locerr.Pos {
+	return b.Exp.End()
 }

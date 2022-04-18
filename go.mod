@@ -1,6 +1,6 @@
 module github.com/lilac/fun-lang
 
-go 1.17
+go 1.18
 
 require (
 	github.com/hashicorp/go-multierror v1.1.1

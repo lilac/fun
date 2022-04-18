@@ -45,3 +45,11 @@ func (f FunDec) String() string {
 	s := strings.Join(binds, " | ")
 	return fmt.Sprintf("fun %s", s)
 }
+
+func (m Module) String() string {
+	decs := make([]string, len(m.Decs))
+	for i, dec := range m.Decs {
+		decs[i] = dec.String()
+	}
+	return strings.Join(decs, "\n")
+}
