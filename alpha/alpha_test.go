@@ -1,0 +1,80 @@
+package alpha
+
+import (
+	"github.com/lilac/fun-lang/syntax"
+	"github.com/stretchr/testify/assert"
+	"strings"
+	"testing"
+)
+
+func assertErrorContains(t *testing.T, err error, msg string) {
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), msg)
+}
+
+func TestUndefinedVariable(t *testing.T) {
+	lines := []string{
+		"val a = f 1",
+	}
+	src := syntax.NewDummySource(strings.Join(lines, "\n"))
+	module, err := syntax.Parse(src)
+	if err != nil {
+		t.Fatal("Unexpected error:", err)
+	}
+	transformer := Transformer{}
+	transformer.Transform(module)
+	assertErrorContains(t, transformer.error, "Undefined variable 'f'")
+}
+
+func TestDuplicateId(t *testing.T) {
+	lines := []string{
+		"fun f x x = 1",
+	}
+	src := syntax.NewDummySource(strings.Join(lines, "\n"))
+	module, err := syntax.Parse(src)
+	if err != nil {
+		t.Fatal("Unexpected error:", err)
+	}
+	transformer := Transformer{}
+	transformer.Transform(module)
+	assertErrorContains(t, transformer.error, "Duplicate identifier 'x' in pattern")
+}
+
+func TestConsistentFunName(t *testing.T) {
+	lines := []string{
+		"fun fib 1 = 1 | f x = x",
+	}
+	src := syntax.NewDummySource(strings.Join(lines, "\n"))
+	module, err := syntax.Parse(src)
+	if err != nil {
+		t.Fatal("Unexpected error:", err)
+	}
+	transformer := Transformer{}
+	transformer.Transform(module)
+	assertErrorContains(t, transformer.error, "Function name is not consistent: f")
+}
+
+func TestTransform(t *testing.T) {
+	lines := []string{
+		"val a = (1 + 2) * 3",
+		"val a = let val x = 1 val y = \"ab\" in x > 0; 1 end",
+		"val a = if 1 > 0 then 1 else fn true => 1 | x => 0",
+		"fun fib 0 = 0 | fib 1 = 1 | fib x = fib (x - 1) + fib (x - 2)",
+	}
+	src := syntax.NewDummySource(strings.Join(lines, "\n"))
+	module, err := syntax.Parse(src)
+	if err != nil {
+		t.Fatal("Unexpected error:", err)
+	}
+	transformer := Transformer{time: 0}
+	transformer.Transform(module)
+	s := module.String()
+	expectedLines := []string{
+		"val a$1 = (1 + 2) * 3",
+		"val a$4 = let val x$2 = 1 val y$3 = \"ab\" in x$2 > 0; 1 end",
+		"val a$6 = if 1 > 0 then 1 else fn true => 1 | x$5 => 0",
+		"fun fib$7 0 = 0 | fib 1 = 1 | fib x$8 = fib$7 (x$8 - 1) + fib$7 (x$8 - 2)",
+	}
+	assert.NoError(t, transformer.error)
+	assert.Equal(t, strings.Join(expectedLines, "\n"), s)
+}
