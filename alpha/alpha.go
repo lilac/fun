@@ -25,7 +25,6 @@ func (t *Transformer) transformExp(env *NameEnv, exp ast.Exp) ast.Exp {
 	//case ast.Var:
 	//	return t.transformVar(env, &node)
 	case *ast.Var:
-		// todo: ignore internal var like '_'
 		return t.transformVar(env, node)
 	case *ast.Fn:
 		for i, m := range node.Matches {
@@ -91,6 +90,10 @@ func (t *Transformer) transformExp(env *NameEnv, exp ast.Exp) ast.Exp {
 }
 
 func (t *Transformer) transformVar(env *Env[string, string], v *ast.Var) ast.Exp {
+	if v.Id.Name == "_" {
+		t.errorfIn(v, "Cannot use '_' in variable reference")
+		return v
+	}
 	name, ok := env.LookUp(v.Id.Name)
 	if ok {
 		v.Id.Value = name
