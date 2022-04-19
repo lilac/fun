@@ -8,8 +8,9 @@ import (
 )
 
 func assertErrorContains(t *testing.T, err error, msg string) {
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), msg)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), msg)
+	}
 }
 
 func TestUndefinedVariable(t *testing.T) {
@@ -18,9 +19,8 @@ func TestUndefinedVariable(t *testing.T) {
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
-	if err != nil {
-		t.Fatal("Unexpected error:", err)
-	}
+	assert.NoError(t, err, "parsing error")
+
 	transformer := Transformer{}
 	transformer.Transform(module)
 	assertErrorContains(t, transformer.error, "Undefined variable 'f'")
@@ -32,9 +32,7 @@ func TestDuplicateId(t *testing.T) {
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
-	if err != nil {
-		t.Fatal("Unexpected error:", err)
-	}
+	assert.NoError(t, err, "parsing error")
 	transformer := Transformer{}
 	transformer.Transform(module)
 	assertErrorContains(t, transformer.error, "Duplicate identifier 'x' in pattern")
@@ -46,12 +44,38 @@ func TestConsistentFunName(t *testing.T) {
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
-	if err != nil {
-		t.Fatal("Unexpected error:", err)
-	}
+	assert.NoError(t, err, "parsing error")
 	transformer := Transformer{}
 	transformer.Transform(module)
 	assertErrorContains(t, transformer.error, "Function name is not consistent: f")
+}
+
+func TestUnderscoreVar(t *testing.T) {
+	line := "fun f _ = _"
+	src := syntax.NewDummySource(line)
+	module, err := syntax.Parse(src)
+	assert.NoError(t, err, "parsing error")
+	transformer := Transformer{time: 0}
+	transformer.Transform(module)
+	assertErrorContains(t, transformer.error, "Cannot use '_' in variable reference")
+}
+
+func TestUnderscoreInPattern(t *testing.T) {
+	lines := []string{
+		"fun fib 1 = 1 | fib _ = 0",
+		"val _ = 0",
+	}
+	src := syntax.NewDummySource(strings.Join(lines, "\n"))
+	module, err := syntax.Parse(src)
+	assert.NoError(t, err, "parsing error")
+	expectedLines := []string{
+		"fun fib$1 1 = 1 | fib _$2 = 0",
+		"val _$3 = 0",
+	}
+	transformer := Transformer{}
+	transformer.Transform(module)
+	assert.NoError(t, transformer.error)
+	assert.Equal(t, strings.Join(expectedLines, "\n"), module.String())
 }
 
 func TestTransform(t *testing.T) {
@@ -63,9 +87,7 @@ func TestTransform(t *testing.T) {
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
-	if err != nil {
-		t.Fatal("Unexpected error:", err)
-	}
+	assert.NoError(t, err, "parsing error")
 	transformer := Transformer{time: 0}
 	transformer.Transform(module)
 	s := module.String()
