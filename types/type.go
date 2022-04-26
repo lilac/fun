@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"unicode"
 )
@@ -17,6 +18,7 @@ var (
 
 type Type interface {
 	String() string
+	Equal(t Type) bool
 }
 
 type VarId int
@@ -39,21 +41,21 @@ func NewVar(id VarId) Var {
 }
 
 func PrimitiveType(name string) Type {
-	return CtorType{
+	return &CtorType{
 		Ctor: name,
 		Args: nil,
 	}
 }
 
 func Arrow(a, b Type) Type {
-	return CtorType{
+	return &CtorType{
 		Ctor: "->",
 		Args: []Type{a, b},
 	}
 }
 
 func TupleType(ts []Type) Type {
-	return CtorType{
+	return &CtorType{
 		Ctor: "*",
 		Args: ts,
 	}
@@ -62,6 +64,17 @@ func TupleType(ts []Type) Type {
 func (v Var) String() string {
 	c := 'a' + int(v.Id)
 	return "'" + string(rune(c))
+}
+
+func (v Var) Equal(t Type) bool {
+	switch ot := t.(type) {
+	case Var:
+		return v.Id == ot.Id || (v.Ref == nil && v.Ref == ot.Ref) || (v.Ref != nil && v.Ref.Equal(ot.Ref))
+	case *Var:
+		return v.Id == ot.Id || (v.Ref == nil && v.Ref == ot.Ref) || (v.Ref != nil && v.Ref.Equal(ot.Ref))
+	default:
+		return false
+	}
 }
 
 func (c CtorType) String() string {
@@ -79,5 +92,16 @@ func (c CtorType) String() string {
 		}
 		s := strings.Join(args, ", ")
 		return fmt.Sprintf("(%s) %s", s, c.Ctor)
+	}
+}
+
+func (c CtorType) Equal(t Type) bool {
+	switch ot := t.(type) {
+	case *CtorType:
+		return reflect.DeepEqual(c, *ot)
+	case CtorType:
+		return reflect.DeepEqual(c, ot)
+	default:
+		return false
 	}
 }
