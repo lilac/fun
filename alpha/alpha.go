@@ -17,6 +17,14 @@ type Transformer struct {
 
 type NameEnv = Env[string, string]
 
+func NewTransformer() *Transformer {
+	return &Transformer{}
+}
+
+func (t Transformer) Error() error {
+	return t.error
+}
+
 func (t *Transformer) transformExp(env *NameEnv, exp ast.Exp) ast.Exp {
 	// todo: make the transformation in-place.
 	switch node := exp.(type) {
