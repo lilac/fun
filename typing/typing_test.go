@@ -18,6 +18,7 @@ func TestTypeInference_Infer(t *testing.T) {
 		"val s = \"abc\"",
 		"val u = ()",
 		"val f = -1.2",
+		"val c = if f > 0. then a else 0",
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
@@ -34,4 +35,5 @@ func TestTypeInference_Infer(t *testing.T) {
 	assert.Equal(t, types.StringType, env["s$3"])
 	assert.Equal(t, types.UnitType, env["u$4"])
 	assert.Equal(t, types.FloatType, env["f$5"])
+	assert.Equal(t, types.IntType, env["c$6"])
 }

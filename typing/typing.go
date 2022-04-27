@@ -104,6 +104,17 @@ func (ti *TypeInference) inferExp(env Env, nonGenericVars VarSet, exp ast.Exp) (
 		default:
 			panic("Bug: unknown operator")
 		}
+	case *ast.IfThen:
+		condType, err := ti.inferExp(env, nonGenericVars, node.Cond)
+		errors = merror.Append(errors, err)
+		err = unify(types.BoolType, condType)
+		thenType, err := ti.inferExp(env, nonGenericVars, node.Then)
+		errors = merror.Append(errors, err)
+		elseType, err := ti.inferExp(env, nonGenericVars, node.Else)
+		errors = merror.Append(errors, err)
+		err = unify(thenType, elseType)
+		errors = merror.Append(errors, err)
+		return thenType, errors
 	case *ast.Apply:
 		resultType := ti.generateVar()
 		argType, err := ti.inferExp(env, nonGenericVars, node.Arg)
