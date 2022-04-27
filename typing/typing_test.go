@@ -14,7 +14,10 @@ func TestTypeInference_Infer(t *testing.T) {
 
 	lines := []string{
 		"val a = (1 + 2) * 3",
-		"val a = not (a > 0) && false",
+		"val b = not (a > 0) && false",
+		"val s = \"abc\"",
+		"val u = ()",
+		"val f = -1.2",
 	}
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
@@ -27,5 +30,8 @@ func TestTypeInference_Infer(t *testing.T) {
 	env, err := ti.Infer(module)
 	assert.NoError(t, err, "type inference error")
 	assert.Equal(t, types.IntType, env["a$1"])
-	assert.Equal(t, types.BoolType, env["a$2"])
+	assert.Equal(t, types.BoolType, env["b$2"])
+	assert.Equal(t, types.StringType, env["s$3"])
+	assert.Equal(t, types.UnitType, env["u$4"])
+	assert.Equal(t, types.FloatType, env["f$5"])
 }
