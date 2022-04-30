@@ -4,6 +4,7 @@ import (
 	"fmt"
 	merror "github.com/hashicorp/go-multierror"
 	"github.com/lilac/fun-lang/ast"
+	. "github.com/lilac/fun-lang/common"
 	"github.com/lilac/fun-lang/syntax"
 	"github.com/rhysd/locerr"
 )
