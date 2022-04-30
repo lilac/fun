@@ -1,4 +1,4 @@
-package alpha
+package common
 
 type Env[K comparable, V any] struct {
 	parent   *Env[K, V]
@@ -35,4 +35,17 @@ func (env Env[K, V]) Add(key K, value V) {
 func (env Env[K, V]) Contain(key K) bool {
 	_, existed := env.bindings[key]
 	return existed
+}
+
+func (env Env[K, V]) Keys() map[K]bool {
+	var keys map[K]bool
+	if env.parent != nil {
+		keys = env.parent.Keys()
+	} else {
+		keys = make(map[K]bool, len(env.bindings))
+	}
+	for key := range env.bindings {
+		keys[key] = true
+	}
+	return keys
 }

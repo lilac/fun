@@ -5,12 +5,13 @@ import (
 	"fmt"
 	merror "github.com/hashicorp/go-multierror"
 	"github.com/lilac/fun-lang/ast"
+	"github.com/lilac/fun-lang/common"
 	"github.com/lilac/fun-lang/types"
 )
 
-type Env = map[string]types.Type
+type TypeEnv = map[string]types.Type
 
-type VarSet = map[types.Var]bool
+type VarSet = common.Env[*types.Var, bool]
 
 type TypeInference struct {
 	nextVarId types.VarId
@@ -22,9 +23,9 @@ func (ti *TypeInference) generateVar() *types.Var {
 	return &newVar
 }
 
-func (ti *TypeInference) Infer(module *ast.Module) (Env, error) {
+func (ti *TypeInference) Infer(module *ast.Module) (TypeEnv, error) {
 	var errors *merror.Error
-	env := Env{}
+	env := TypeEnv{}
 	nonGenericVars := VarSet{}
 	for _, dec := range module.Decs {
 		err := ti.inferDec(env, nonGenericVars, dec)
@@ -33,7 +34,7 @@ func (ti *TypeInference) Infer(module *ast.Module) (Env, error) {
 	return env, errors.ErrorOrNil()
 }
 
-func (ti *TypeInference) inferDec(env Env, nonGenericVars VarSet, dec ast.Dec) error {
+func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.Dec) error {
 	var errors error
 	switch decl := dec.(type) {
 	case *ast.ValDec:
@@ -52,13 +53,13 @@ func (ti *TypeInference) inferDec(env Env, nonGenericVars VarSet, dec ast.Dec) e
 	return errors
 }
 
-func (ti *TypeInference) inferExp(env Env, nonGenericVars VarSet, exp ast.Exp) (types.Type, error) {
+func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.Var, bool], exp ast.Exp) (types.Type, error) {
 	var errors error = nil
 	switch node := exp.(type) {
 	case ast.Constant:
 		return node.Type(), nil
 	case *ast.Var:
-		return ti.typeOfVar(env, nonGenericVars, node.String())
+		return ti.typeOfId(env, nonGenericVars, node.String())
 	case *ast.Not:
 		t, err := ti.inferExp(env, nonGenericVars, node.Child)
 		errors = merror.Append(errors, err)
@@ -115,6 +116,26 @@ func (ti *TypeInference) inferExp(env Env, nonGenericVars VarSet, exp ast.Exp) (
 		err = unify(thenType, elseType)
 		errors = merror.Append(errors, err)
 		return thenType, errors
+	case *ast.Fn:
+		argType := ti.generateVar()
+		resType := ti.generateVar()
+		newNonGenericVars := common.NewEnv(&nonGenericVars)
+		for _, match := range node.Matches {
+			switch pat := match.Pattern.(type) {
+			case *ast.ConstPattern:
+				err := unify(argType, pat.Constant.Type())
+				errors = merror.Append(errors, err)
+			case *ast.VarPattern:
+				name := pat.Id.String()
+				env[name] = argType
+				newNonGenericVars.Add(argType, true)
+			}
+			bodyType, err := ti.inferExp(env, *newNonGenericVars, match.Exp)
+			errors = merror.Append(errors, err)
+			err = unify(resType, bodyType)
+			errors = merror.Append(errors, err)
+		}
+		return types.Arrow(argType, resType), errors
 	case *ast.Apply:
 		resultType := ti.generateVar()
 		argType, err := ti.inferExp(env, nonGenericVars, node.Arg)
@@ -130,7 +151,7 @@ func (ti *TypeInference) inferExp(env Env, nonGenericVars VarSet, exp ast.Exp) (
 	}
 }
 
-func (ti *TypeInference) typeOfVar(env Env, nonGenericVars VarSet, name string) (types.Type, error) {
+func (ti *TypeInference) typeOfId(env TypeEnv, nonGenericVars VarSet, name string) (types.Type, error) {
 	if t, ok := env[name]; ok {
 		return ti.fresh(nonGenericVars, t), nil
 	} else {
@@ -228,9 +249,9 @@ func prune(t types.Type) types.Type {
 	return t
 }
 
-func isGeneric(nonGenericVars VarSet, v *types.Var) bool {
-	var ts []types.Type = nil
-	for t := range nonGenericVars {
+func isGeneric(nonGenericVars common.Env[*types.Var, bool], v *types.Var) bool {
+	var ts = make([]types.Type, 0, len(nonGenericVars.Keys()))
+	for t := range nonGenericVars.Keys() {
 		ts = append(ts, t)
 	}
 	return !occursInTypes(v, ts)

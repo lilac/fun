@@ -62,6 +62,9 @@ func TupleType(ts []Type) Type {
 }
 
 func (v Var) String() string {
+	if v.Ref != nil {
+		return v.Ref.String()
+	}
 	c := 'a' + int(v.Id)
 	return "'" + string(rune(c))
 }
