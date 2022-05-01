@@ -47,6 +47,35 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 		name := decl.Arg.Id.String()
 		env[name] = t
 	case *ast.FunDec:
+		arity := len(decl.Binds[0].Patterns)
+		argTypes := make([]types.Type, arity)
+		for i := 0; i < arity; i++ {
+			argTypes[i] = ti.generateVar()
+		}
+		resType := ti.generateVar()
+		for _, bind := range decl.Binds {
+			newNonGenericVars := common.NewEnv(&nonGenericVars)
+			for i, pattern := range bind.Patterns {
+				t, err := ti.inferExp(env, *newNonGenericVars, pattern)
+				errors = merror.Append(errors, err)
+				err = unify(t, argTypes[i])
+				errors = merror.Append(errors, err)
+			}
+			t, err := ti.inferExp(env, *newNonGenericVars, bind.Exp)
+			errors = merror.Append(errors, err)
+			err = unify(resType, t)
+			if bind.ResultType != nil {
+				err = unify(resType, bind.ResultType)
+				errors = merror.Append(errors, err)
+			}
+		}
+		var funType = types.Arrow(argTypes[arity-1], resType)
+		for i := arity - 2; i >= 0; i-- {
+			funType = types.Arrow(argTypes[i], funType)
+		}
+		name := decl.Binds[0].Id.String()
+		env[name] = funType
+		return errors
 	default:
 		panic("unexpected ast.Dec type")
 	}
@@ -79,11 +108,10 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		errors = merror.Append(errors, err)
 		bt, err := ti.inferExp(env, nonGenericVars, node.Right)
 		errors = merror.Append(errors, err)
-		if !at.Equal(bt) {
-			err = fmt.Errorf("mismatch type: %s != %s", at, bt)
-			errors = merror.Append(errors, err)
-		}
+		err = unify(bt, at)
+		errors = merror.Append(errors, err)
 		switch node.Op.String() {
+		// todo: unify with type var, when at is not a concrete type
 		case ast.Add, ast.Minus, ast.Mul, ast.Div, ast.Mod:
 			if !at.Equal(types.IntType) && !at.Equal(types.FloatType) {
 				err = fmt.Errorf("arithmethic operator can only be applied to a number, but got %s", at)
@@ -121,15 +149,10 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		resType := ti.generateVar()
 		newNonGenericVars := common.NewEnv(&nonGenericVars)
 		for _, match := range node.Matches {
-			switch pat := match.Pattern.(type) {
-			case *ast.ConstPattern:
-				err := unify(argType, pat.Constant.Type())
-				errors = merror.Append(errors, err)
-			case *ast.VarPattern:
-				name := pat.Id.String()
-				env[name] = argType
-				newNonGenericVars.Add(argType, true)
-			}
+			t, err := ti.inferExp(env, *newNonGenericVars, match.Pattern)
+			errors = merror.Append(errors, err)
+			err = unify(t, argType)
+			errors = merror.Append(errors, err)
 			bodyType, err := ti.inferExp(env, *newNonGenericVars, match.Exp)
 			errors = merror.Append(errors, err)
 			err = unify(resType, bodyType)
@@ -146,6 +169,14 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		err = unify(funType, expectedType)
 		errors = merror.Append(errors, err)
 		return resultType, errors
+	case *ast.ConstPattern:
+		return node.Type(), nil
+	case *ast.VarPattern:
+		v := ti.generateVar()
+		name := node.Id.String()
+		env[name] = v
+		nonGenericVars.Add(v, true)
+		return v, nil
 	default:
 		panic("Bug: unexpected expression type.")
 	}

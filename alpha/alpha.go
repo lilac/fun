@@ -151,6 +151,12 @@ func (t *Transformer) transformDec(env *NameEnv, dec ast.Dec) ast.Dec {
 	case *ast.FunDec:
 		id := &node.Binds[0].Id
 		arity := len(node.Binds[0].Patterns)
+		/*
+			We don't need the check since the grammar has dictated that.
+			if arity == 0 {
+				t.errorfIn(node.Binds[0], "A function should have at least one argument: %s", id.Name)
+			}
+		*/
 		t.bind(env, id)
 		for _, bind := range node.Binds {
 			if bind.Id.Name != id.Name {
