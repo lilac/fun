@@ -150,10 +150,14 @@ func (t *Transformer) transformDec(env *NameEnv, dec ast.Dec) ast.Dec {
 		t.bind(env, &node.Arg.Id)
 	case *ast.FunDec:
 		id := &node.Binds[0].Id
+		arity := len(node.Binds[0].Patterns)
 		t.bind(env, id)
 		for _, bind := range node.Binds {
 			if bind.Id.Name != id.Name {
 				t.errorfIn(bind, "Function name is not consistent: %s", bind.Id.Name)
+			}
+			if len(bind.Patterns) != arity {
+				t.errorfIn(bind, "Function arity is not consistent: the arity of \"%s\" is %d", id.Name, arity)
 			}
 			bind.Id.Value = id.Value
 			// a new environment for each bind

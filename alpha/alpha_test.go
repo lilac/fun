@@ -13,16 +13,21 @@ func assertErrorContains(t *testing.T, err error, msg string) {
 	}
 }
 
-func TestUndefinedVariable(t *testing.T) {
-	lines := []string{
-		"val a = f 1",
-	}
+func run(t *testing.T, lines []string) Transformer {
 	src := syntax.NewDummySource(strings.Join(lines, "\n"))
 	module, err := syntax.Parse(src)
 	assert.NoError(t, err, "parsing error")
 
 	transformer := Transformer{}
 	transformer.Transform(module)
+	return transformer
+}
+
+func TestUndefinedVariable(t *testing.T) {
+	lines := []string{
+		"val a = f 1",
+	}
+	transformer := run(t, lines)
 	assertErrorContains(t, transformer.error, "Undefined variable 'f'")
 }
 
@@ -30,11 +35,7 @@ func TestDuplicateId(t *testing.T) {
 	lines := []string{
 		"fun f x x = 1",
 	}
-	src := syntax.NewDummySource(strings.Join(lines, "\n"))
-	module, err := syntax.Parse(src)
-	assert.NoError(t, err, "parsing error")
-	transformer := Transformer{}
-	transformer.Transform(module)
+	transformer := run(t, lines)
 	assertErrorContains(t, transformer.error, "Duplicate identifier 'x' in pattern")
 }
 
@@ -42,21 +43,26 @@ func TestConsistentFunName(t *testing.T) {
 	lines := []string{
 		"fun fib 1 = 1 | f x = x",
 	}
-	src := syntax.NewDummySource(strings.Join(lines, "\n"))
-	module, err := syntax.Parse(src)
-	assert.NoError(t, err, "parsing error")
-	transformer := Transformer{}
-	transformer.Transform(module)
+	transformer := run(t, lines)
+
 	assertErrorContains(t, transformer.error, "Function name is not consistent: f")
 }
 
+func TestConsistentFunArity(t *testing.T) {
+	lines := []string{
+		"fun fib 1 = 1 | fib x y = x",
+	}
+	transformer := run(t, lines)
+
+	assertErrorContains(t, transformer.error, "Function arity is not consistent")
+}
+
 func TestUnderscoreVar(t *testing.T) {
-	line := "fun f _ = _"
-	src := syntax.NewDummySource(line)
-	module, err := syntax.Parse(src)
-	assert.NoError(t, err, "parsing error")
-	transformer := Transformer{time: 0}
-	transformer.Transform(module)
+	lines := []string{
+		"fun f _ = _",
+	}
+	transformer := run(t, lines)
+
 	assertErrorContains(t, transformer.error, "Cannot use '_' in variable reference")
 }
 
