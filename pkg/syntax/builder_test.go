@@ -2,8 +2,8 @@ package syntax
 
 import (
 	"fmt"
-	"github.com/lilac/fun-lang/ast"
-	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/pkg/ast"
+	"github.com/lilac/fun-lang/pkg/token"
 	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"

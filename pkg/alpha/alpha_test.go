@@ -1,7 +1,7 @@
 package alpha
 
 import (
-	"github.com/lilac/fun-lang/syntax"
+	"github.com/lilac/fun-lang/pkg/syntax"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"

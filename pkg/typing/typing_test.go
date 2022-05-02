@@ -1,9 +1,9 @@
 package typing
 
 import (
-	"github.com/lilac/fun-lang/alpha"
-	"github.com/lilac/fun-lang/syntax"
-	"github.com/lilac/fun-lang/types"
+	"github.com/lilac/fun-lang/pkg/alpha"
+	"github.com/lilac/fun-lang/pkg/syntax"
+	"github.com/lilac/fun-lang/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"

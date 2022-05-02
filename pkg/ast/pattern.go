@@ -2,7 +2,7 @@ package ast
 
 import (
 	"fmt"
-	"github.com/lilac/fun-lang/types"
+	"github.com/lilac/fun-lang/pkg/types"
 	"github.com/rhysd/locerr"
 	"strings"
 )
