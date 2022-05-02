@@ -5,7 +5,7 @@ dep:
 	go install golang.org/x/tools/cmd/goyacc@latest
 
 pkg/syntax/grammar.go: pkg/syntax/grammar.go.y
-	go generate ./pkg
+	go generate ./pkg/syntax
 
 build: $(EXE)
 
