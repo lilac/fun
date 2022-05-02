@@ -18,29 +18,34 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
 - [x] Semantics analysis
   - [x] Rename identifiers
   - [x] Semantics checks
-- [] Type system
+- [ ] Type system
   - [x] Parametric polymorphism
-  - [] Type inference
+  - [ ] Type inference
     - [x] Infix op expression
-      - [] Type variables in arithmetic expressions
+      - [ ] Type variables in arithmetic expressions
     - [x] Function application
     - [x] If-then-else
     - [x] Fn (lambda) expression
-    - [] Let-in expression
-    - [] Tuples
-    - [] Sequence
-  - [] Record
-  - [] Data type
-  - [] Subtyping (structural subtyping)
-- [] Code generation
-  - [] Go ast
-- [] Module
-  - [] Import statement
-  - [] Export annotation (or keyword)
-- [] Package & Distribution
-  - [] Package declaration
-  - [] Import map
-- [] Go packages interoperability
-  - [] Go types mapping
-  - [] Call Go functions
-  - [] Call Go methods
+    - [ ] Let-in expression
+    - [ ] Tuples
+    - [ ] Sequence
+    - [ ] Patterns
+      - [x] Constant pattern
+      - [x] Var pattern
+      - [ ] Tuple pattern
+  - [ ] Record
+  - [ ] Data type
+  - [ ] List
+  - [ ] Subtyping (structural subtyping)
+- [ ] Code generation
+  - [ ] Go ast
+- [ ] Module
+  - [ ] Import statement
+  - [ ] Export annotation (or keyword)
+- [ ] Package & Distribution
+  - [ ] Package declaration
+  - [ ] Import map
+- [ ] Go packages interoperability
+  - [ ] Go types mapping
+  - [ ] Call Go functions
+  - [ ] Call Go methods
