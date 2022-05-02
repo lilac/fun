@@ -37,6 +37,25 @@ func TestInference_Fib(t *testing.T) {
 	assert.Equal(t, types.Arrow(types.IntType, types.FloatType).String(), env["fibf$3"].String())
 }
 
+func TestInference_Tuple(t *testing.T) {
+	lines := []string{
+		"val t = let fun id x = x in id 1, id (1 > 0) end",
+	}
+	env, _ := run(t, lines)
+	ts := []types.Type{
+		types.IntType, types.BoolType,
+	}
+	assert.Equal(t, types.TupleType(ts).String(), env["t$3"].String())
+}
+
+func TestInference_Sequence(t *testing.T) {
+	lines := []string{
+		"val s = let fun id x = x in id 1; id \"abc\" end",
+	}
+	env, _ := run(t, lines)
+	assert.Equal(t, types.StringType.String(), env["s$3"].String())
+}
+
 func TestFnInference(t *testing.T) {
 	lines := []string{
 		"val id = fn x => x",

@@ -185,6 +185,22 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		t, err := ti.inferExp(env, nonGenericVars, node.Body)
 		errors = merror.Append(errors, err)
 		return t, errors
+	case *ast.Tuple:
+		var ts = make([]types.Type, len(node.Elements))
+		for i, element := range node.Elements {
+			t, err := ti.inferExp(env, nonGenericVars, element)
+			errors = merror.Append(errors, err)
+			ts[i] = t
+		}
+		return types.TupleType(ts), errors
+	case *ast.Sequence:
+		var t types.Type
+		var err error
+		for _, element := range node.Elements {
+			t, err = ti.inferExp(env, nonGenericVars, element)
+			errors = merror.Append(errors, err)
+		}
+		return t, errors
 	default:
 		panic("Bug: unexpected expression type.")
 	}
