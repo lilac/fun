@@ -1,6 +1,7 @@
 package typing
 
 import (
+	"fmt"
 	"github.com/lilac/fun-lang/alpha"
 	"github.com/lilac/fun-lang/syntax"
 	"github.com/lilac/fun-lang/types"
@@ -67,6 +68,17 @@ func TestArithmeticOp(t *testing.T) {
 	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, types.Arrow(aVar, aVar)).String(), env["add$1"].String())
+}
+
+func TestLetInExpression(t *testing.T) {
+	lines := []string{
+		"val i = let fun id x = x val i = id 1 val b = id true in i end",
+	}
+	env, _ := run(t, lines)
+	fmt.Println(env)
+	aVar := types.NewVar(0)
+	assert.Equal(t, types.Arrow(aVar, aVar).String(), env["id$1"].String())
+	assert.Equal(t, types.IntType.String(), env["i$3"].String())
 }
 
 func run(t *testing.T, lines []string) (TypeEnv, error) {

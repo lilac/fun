@@ -26,13 +26,14 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
     - [x] Function application
     - [x] If-then-else
     - [x] Fn (lambda) expression
-    - [ ] Let-in expression
+    - [x] Let-in expression
     - [ ] Tuples
     - [ ] Sequence
     - [ ] Patterns
       - [x] Constant pattern
       - [x] Var pattern
       - [ ] Tuple pattern
+    - [ ] Type annotation
   - [ ] Record
   - [ ] Data type
   - [ ] List
