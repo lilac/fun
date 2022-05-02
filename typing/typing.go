@@ -20,7 +20,7 @@ type TypeInference struct {
 func (ti *TypeInference) generateVar() *types.Var {
 	newVar := types.NewVar(ti.nextVarId)
 	ti.nextVarId++
-	return &newVar
+	return newVar
 }
 
 func (ti *TypeInference) Infer(module *ast.Module) (TypeEnv, error) {
@@ -53,6 +53,12 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 			argTypes[i] = ti.generateVar()
 		}
 		resType := ti.generateVar()
+		var funType = types.Arrow(argTypes[arity-1], resType)
+		for i := arity - 2; i >= 0; i-- {
+			funType = types.Arrow(argTypes[i], funType)
+		}
+		name := decl.Binds[0].Id.String()
+		env[name] = funType
 		for _, bind := range decl.Binds {
 			newNonGenericVars := common.NewEnv(&nonGenericVars)
 			for i, pattern := range bind.Patterns {
@@ -69,12 +75,6 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 				errors = merror.Append(errors, err)
 			}
 		}
-		var funType = types.Arrow(argTypes[arity-1], resType)
-		for i := arity - 2; i >= 0; i-- {
-			funType = types.Arrow(argTypes[i], funType)
-		}
-		name := decl.Binds[0].Id.String()
-		env[name] = funType
 		return errors
 	default:
 		panic("unexpected ast.Dec type")
@@ -113,19 +113,19 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		switch node.Op.String() {
 		// todo: unify with type var, when at is not a concrete type
 		case ast.Add, ast.Minus, ast.Mul, ast.Div, ast.Mod:
-			if !at.Equal(types.IntType) && !at.Equal(types.FloatType) {
+			if _, ok := at.Prune().(*types.CtorType); ok && !at.Equal(types.IntType) && !at.Equal(types.FloatType) {
 				err = fmt.Errorf("arithmethic operator can only be applied to a number, but got %s", at)
 				errors = merror.Append(errors, err)
 			}
 			return at, errors
 		case ast.Eq, ast.NotEq, ast.Less, ast.LessEq, ast.Greater, ast.GreaterEq:
-			if !at.Equal(types.IntType) && !at.Equal(types.FloatType) {
+			if _, ok := at.Prune().(*types.CtorType); ok && !at.Equal(types.IntType) && !at.Equal(types.FloatType) {
 				err = fmt.Errorf("arithmethic operator can only be applied to a number, but got %s", at)
 				errors = merror.Append(errors, err)
 			}
 			return types.BoolType, errors
 		case ast.And, ast.Or:
-			if !at.Equal(types.BoolType) {
+			if _, ok := at.Prune().(*types.CtorType); ok && !at.Equal(types.BoolType) {
 				err = fmt.Errorf("logical operator can only be applied to a boolean value, but got %s", at)
 				errors = merror.Append(errors, err)
 			}
@@ -206,7 +206,7 @@ func (ti *TypeInference) fresh(nonGenericVars VarSet, t types.Type) types.Type {
 }
 
 func (ti *TypeInference) freshType(nonGenericVars VarSet, t types.Type, varMap map[*types.Var]*types.Var) types.Type {
-	switch ty := prune(t).(type) {
+	switch ty := t.Prune().(type) {
 	case *types.Var:
 		if isGeneric(nonGenericVars, ty) {
 			if v, ok := varMap[ty]; ok {
@@ -227,15 +227,15 @@ func (ti *TypeInference) freshType(nonGenericVars VarSet, t types.Type, varMap m
 			Ctor: ty.Ctor,
 			Args: newTypes,
 		}
-	case types.Var, types.CtorType:
+	case types.CtorType:
 		panic("Bug: a pointer to types.Type expected.")
 	}
 	return t
 }
 
 func unify(a, b types.Type) error {
-	bt := prune(b)
-	switch at := prune(a).(type) {
+	bt := b.Prune()
+	switch at := a.Prune().(type) {
 	case *types.Var:
 		if at != bt {
 			if occursInType(at, bt) {
@@ -271,23 +271,6 @@ func unify(a, b types.Type) error {
 	return nil
 }
 
-// prune visits the type reference chain to get the ultimate type.
-// As a side effect, all the type references are collapsed (flattened).
-// todo: consider benefits of making it mutable.
-func prune(t types.Type) types.Type {
-	switch ty := t.(type) {
-	case *types.Var:
-		if ty.Ref != nil {
-			otherType := prune(ty.Ref)
-			ty.Ref = otherType
-			return otherType
-		}
-	case types.Var, types.CtorType:
-		panic("Bug: a pointer to types.Type expected.")
-	}
-	return t
-}
-
 func isGeneric(nonGenericVars common.Env[*types.Var, bool], v *types.Var) bool {
 	var ts = make([]types.Type, 0, len(nonGenericVars.Keys()))
 	for t := range nonGenericVars.Keys() {
@@ -300,7 +283,7 @@ func isGeneric(nonGenericVars common.Env[*types.Var, bool], v *types.Var) bool {
 //
 // Note: the type var v must be pruned.
 func occursInType(v *types.Var, t types.Type) bool {
-	switch ty := prune(t).(type) {
+	switch ty := t.Prune().(type) {
 	case *types.Var:
 		// both vars are now pruned, so an equality check suffices.
 		return v == ty

@@ -19,6 +19,7 @@ var (
 type Type interface {
 	String() string
 	Equal(t Type) bool
+	Prune() Type
 }
 
 type VarId int
@@ -36,8 +37,8 @@ type CtorType struct {
 	Args []Type
 }
 
-func NewVar(id VarId) Var {
-	return Var{Id: id, Ref: nil}
+func NewVar(id VarId) *Var {
+	return &Var{Id: id, Ref: nil}
 }
 
 func PrimitiveType(name string) Type {
@@ -69,14 +70,17 @@ func (v Var) String() string {
 	return "'" + string(rune(c))
 }
 
-func (v Var) Equal(t Type) bool {
-	switch ot := t.(type) {
-	case Var:
-		return v.Id == ot.Id || (v.Ref == nil && v.Ref == ot.Ref) || (v.Ref != nil && v.Ref.Equal(ot.Ref))
+func (v *Var) Equal(t Type) bool {
+	switch vt := v.Prune().(type) {
 	case *Var:
-		return v.Id == ot.Id || (v.Ref == nil && v.Ref == ot.Ref) || (v.Ref != nil && v.Ref.Equal(ot.Ref))
+		switch ot := t.Prune().(type) {
+		case *Var:
+			return vt.Id == ot.Id || vt.Ref == ot.Ref || vt.Ref == ot || ot.Ref == vt
+		default:
+			return ot.Equal(vt)
+		}
 	default:
-		return false
+		return vt.Equal(t)
 	}
 }
 
@@ -99,7 +103,7 @@ func (c CtorType) String() string {
 }
 
 func (c CtorType) Equal(t Type) bool {
-	switch ot := t.(type) {
+	switch ot := t.Prune().(type) {
 	case *CtorType:
 		return reflect.DeepEqual(c, *ot)
 	case CtorType:
@@ -107,4 +111,21 @@ func (c CtorType) Equal(t Type) bool {
 	default:
 		return false
 	}
+}
+
+// Prune visits the type reference chain to get the ultimate type.
+// As a side effect, all the type references are collapsed (flattened).
+// todo: consider benefits of making it mutable.
+func (v *Var) Prune() Type {
+	if v.Ref != nil {
+		otherType := v.Ref.Prune()
+		v.Ref = otherType
+		return otherType
+	}
+	return v
+}
+
+func (c CtorType) Prune() Type {
+	// todo: change to pointer method
+	return &c
 }
