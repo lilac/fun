@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/lilac/fun-lang/syntax"
+	"github.com/lilac/fun-lang/pkg/syntax"
 	"os"
 	"path/filepath"
 )

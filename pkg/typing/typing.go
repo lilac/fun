@@ -4,9 +4,9 @@ package typing
 import (
 	"fmt"
 	merror "github.com/hashicorp/go-multierror"
-	"github.com/lilac/fun-lang/ast"
-	"github.com/lilac/fun-lang/common"
-	"github.com/lilac/fun-lang/types"
+	"github.com/lilac/fun-lang/pkg/ast"
+	"github.com/lilac/fun-lang/pkg/common"
+	"github.com/lilac/fun-lang/pkg/types"
 )
 
 type TypeEnv = map[string]types.Type
