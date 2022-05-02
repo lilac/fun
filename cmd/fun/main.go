@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/lilac/fun-lang/ast"
+	"github.com/lilac/fun-lang/pkg/ast"
 )
 
 func main() {

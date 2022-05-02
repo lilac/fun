@@ -3,7 +3,7 @@ package syntax
 import (
 	"bufio"
 	"fmt"
-	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/pkg/token"
 	"io"
 	"unicode"
 	"unicode/utf8"

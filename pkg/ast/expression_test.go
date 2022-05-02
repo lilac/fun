@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/pkg/token"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

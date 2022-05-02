@@ -3,7 +3,7 @@ package syntax
 import (
 	"fmt"
 	merror "github.com/hashicorp/go-multierror"
-	"github.com/lilac/fun-lang/ast"
+	"github.com/lilac/fun-lang/pkg/ast"
 	"io"
 	"os"
 	"strings"
