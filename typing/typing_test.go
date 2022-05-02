@@ -1,7 +1,6 @@
 package typing
 
 import (
-	"fmt"
 	"github.com/lilac/fun-lang/alpha"
 	"github.com/lilac/fun-lang/syntax"
 	"github.com/lilac/fun-lang/types"
@@ -26,6 +25,16 @@ func TestTypeInference_Infer(t *testing.T) {
 	assert.Equal(t, types.UnitType, env["u$4"])
 	assert.Equal(t, types.FloatType, env["f$5"])
 	assert.Equal(t, types.IntType, env["c$6"])
+}
+
+func TestInference_Fib(t *testing.T) {
+	lines := []string{
+		"fun fib n = if n > 2 then fib (n-1) + fib(n-2) else 1",
+		"fun fibf n = if n > 2 then fibf (n-1) + fibf(n-2) else 1.0",
+	}
+	env, _ := run(t, lines)
+	assert.Equal(t, types.Arrow(types.IntType, types.IntType).String(), env["fib$1"].String())
+	assert.Equal(t, types.Arrow(types.IntType, types.FloatType).String(), env["fibf$3"].String())
 }
 
 func TestFnInference(t *testing.T) {
@@ -75,7 +84,7 @@ func TestLetInExpression(t *testing.T) {
 		"val i = let fun id x = x val i = id 1 val b = id true in i end",
 	}
 	env, _ := run(t, lines)
-	fmt.Println(env)
+	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, aVar).String(), env["id$1"].String())
 	assert.Equal(t, types.IntType.String(), env["i$3"].String())
