@@ -227,8 +227,6 @@ func (ti *TypeInference) freshType(nonGenericVars VarSet, t types.Type, varMap m
 			Ctor: ty.Ctor,
 			Args: newTypes,
 		}
-	case types.CtorType:
-		panic("Bug: a pointer to types.Type expected.")
 	}
 	return t
 }

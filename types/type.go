@@ -106,8 +106,6 @@ func (c CtorType) Equal(t Type) bool {
 	switch ot := t.Prune().(type) {
 	case *CtorType:
 		return reflect.DeepEqual(c, *ot)
-	case CtorType:
-		return reflect.DeepEqual(c, ot)
 	default:
 		return false
 	}
@@ -125,7 +123,7 @@ func (v *Var) Prune() Type {
 	return v
 }
 
-func (c CtorType) Prune() Type {
+func (c *CtorType) Prune() Type {
 	// todo: change to pointer method
-	return &c
+	return c
 }
