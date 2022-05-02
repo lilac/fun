@@ -177,6 +177,14 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		env[name] = v
 		nonGenericVars.Add(v, true)
 		return v, nil
+	case *ast.LetIn:
+		for _, dec := range node.Decs {
+			err := ti.inferDec(env, nonGenericVars, dec)
+			errors = merror.Append(errors, err)
+		}
+		t, err := ti.inferExp(env, nonGenericVars, node.Body)
+		errors = merror.Append(errors, err)
+		return t, errors
 	default:
 		panic("Bug: unexpected expression type.")
 	}
