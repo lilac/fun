@@ -2,7 +2,7 @@ package syntax
 
 import (
 	"fmt"
-	"github.com/lilac/fun-lang/token"
+	"github.com/lilac/fun-lang/pkg/token"
 	"io/ioutil"
 	"path/filepath"
 	"strings"

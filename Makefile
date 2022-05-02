@@ -4,15 +4,15 @@ EXE := fun
 dep:
 	go install golang.org/x/tools/cmd/goyacc@latest
 
-syntax/grammar.go: syntax/grammar.go.y
-	go generate
+pkg/syntax/grammar.go: pkg/syntax/grammar.go.y
+	go generate ./pkg/syntax
 
 build: $(EXE)
 
-$(EXE): syntax/grammar.go
-	go build -o $(EXE)
+$(EXE): pkg/syntax/grammar.go
+	go build ./cmd/fun
 
-test: build
+test: pkg/syntax/grammar.go
 	go test ./...
 
 install: build
