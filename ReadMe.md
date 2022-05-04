@@ -36,7 +36,10 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
     - [ ] Type annotation
   - [ ] Record
   - [ ] Data type
-  - [ ] List
+  - [ ] Built-in types
+    - [ ] List
+    - [ ] Ref
+    - [ ] Option
   - [ ] Subtyping (structural subtyping)
 - [ ] Code generation
   - [ ] Go ast

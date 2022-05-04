@@ -124,6 +124,5 @@ func (v *Var) Prune() Type {
 }
 
 func (c *CtorType) Prune() Type {
-	// todo: change to pointer method
 	return c
 }
