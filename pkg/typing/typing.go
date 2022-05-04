@@ -49,10 +49,14 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 	case *ast.FunDec:
 		arity := len(decl.Binds[0].Patterns)
 		argTypes := make([]types.Type, arity)
+		newNonGenericVars := common.NewEnv(&nonGenericVars)
 		for i := 0; i < arity; i++ {
-			argTypes[i] = ti.generateVar()
+			v := ti.generateVar()
+			argTypes[i] = v
+			newNonGenericVars.Add(v, true)
 		}
 		resType := ti.generateVar()
+		newNonGenericVars.Add(resType, true)
 		var funType = types.Arrow(argTypes[arity-1], resType)
 		for i := arity - 2; i >= 0; i-- {
 			funType = types.Arrow(argTypes[i], funType)
@@ -60,7 +64,6 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 		name := decl.Binds[0].Id.String()
 		env[name] = funType
 		for _, bind := range decl.Binds {
-			newNonGenericVars := common.NewEnv(&nonGenericVars)
 			for i, pattern := range bind.Patterns {
 				t, err := ti.inferExp(env, *newNonGenericVars, pattern)
 				errors = merror.Append(errors, err)
@@ -70,6 +73,7 @@ func (ti *TypeInference) inferDec(env TypeEnv, nonGenericVars VarSet, dec ast.De
 			t, err := ti.inferExp(env, *newNonGenericVars, bind.Exp)
 			errors = merror.Append(errors, err)
 			err = unify(resType, t)
+			errors = merror.Append(errors, err)
 			if bind.ResultType != nil {
 				err = unify(resType, bind.ResultType)
 				errors = merror.Append(errors, err)
@@ -148,6 +152,7 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		argType := ti.generateVar()
 		resType := ti.generateVar()
 		newNonGenericVars := common.NewEnv(&nonGenericVars)
+		newNonGenericVars.Add(argType, true)
 		for _, match := range node.Matches {
 			t, err := ti.inferExp(env, *newNonGenericVars, match.Pattern)
 			errors = merror.Append(errors, err)
@@ -175,7 +180,6 @@ func (ti *TypeInference) inferExp(env TypeEnv, nonGenericVars common.Env[*types.
 		v := ti.generateVar()
 		name := node.Id.String()
 		env[name] = v
-		nonGenericVars.Add(v, true)
 		return v, nil
 	case *ast.LetIn:
 		for _, dec := range node.Decs {

@@ -9,6 +9,12 @@ import (
 	"testing"
 )
 
+func assertErrorContains(t *testing.T, err error, msg string) {
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), msg)
+	}
+}
+
 func TestTypeInference_Infer(t *testing.T) {
 	lines := []string{
 		"val a = (1 + 2) * 3",
@@ -18,7 +24,7 @@ func TestTypeInference_Infer(t *testing.T) {
 		"val f = -1.2",
 		"val c = if f > 0. then a else 0",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	assert.Equal(t, types.IntType, env["a$1"])
 	assert.Equal(t, types.BoolType, env["b$2"])
 	assert.Equal(t, types.StringType, env["s$3"])
@@ -32,7 +38,7 @@ func TestInference_Fib(t *testing.T) {
 		"fun fib n = if n > 2 then fib (n-1) + fib(n-2) else 1",
 		"fun fibf n = if n > 2 then fibf (n-1) + fibf(n-2) else 1.0",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	assert.Equal(t, types.Arrow(types.IntType, types.IntType).String(), env["fib$1"].String())
 	assert.Equal(t, types.Arrow(types.IntType, types.FloatType).String(), env["fibf$3"].String())
 }
@@ -41,7 +47,7 @@ func TestInference_Tuple(t *testing.T) {
 	lines := []string{
 		"val t = let fun id x = x in id 1, id (1 > 0) end",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	ts := []types.Type{
 		types.IntType, types.BoolType,
 	}
@@ -52,7 +58,7 @@ func TestInference_Sequence(t *testing.T) {
 	lines := []string{
 		"val s = let fun id x = x in id 1; id \"abc\" end",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	assert.Equal(t, types.StringType.String(), env["s$3"].String())
 }
 
@@ -63,7 +69,7 @@ func TestFnInference(t *testing.T) {
 		"val s = id true",
 		"val i = (fn f => fn x => f x) id 1.0",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, aVar).String(), env["id$2"].String())
@@ -76,7 +82,7 @@ func TestFunInference(t *testing.T) {
 		"fun id x = x",
 		"fun add x y z = 1",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, aVar).String(), env["id$1"].String())
@@ -87,12 +93,20 @@ func TestFunInference(t *testing.T) {
 	assert.Equal(t, arrow(dVar, arrow(eVar, arrow(fVar, types.IntType))).String(), env["add$3"].String())
 }
 
+func TestInference_Cyclical_Type(t *testing.T) {
+	lines := []string{
+		"fun f x = let fun g y = f x in g end",
+	}
+	_, err := run(t, lines)
+	assertErrorContains(t, err, "recursive type unification")
+}
+
 func TestArithmeticOp(t *testing.T) {
 	t.Skip("Skip a todo work") // todo: enable it
 	lines := []string{
 		"fun add x y = x + y",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, types.Arrow(aVar, aVar)).String(), env["add$1"].String())
@@ -102,11 +116,17 @@ func TestLetInExpression(t *testing.T) {
 	lines := []string{
 		"val i = let fun id x = x val i = id 1 val b = id true in i end",
 	}
-	env, _ := run(t, lines)
+	env, _ := runWithoutError(t, lines)
 	//fmt.Println(env)
 	aVar := types.NewVar(0)
 	assert.Equal(t, types.Arrow(aVar, aVar).String(), env["id$1"].String())
 	assert.Equal(t, types.IntType.String(), env["i$3"].String())
+}
+
+func runWithoutError(t *testing.T, lines []string) (TypeEnv, error) {
+	env, err := run(t, lines)
+	assert.NoError(t, err, "type inference error")
+	return env, err
 }
 
 func run(t *testing.T, lines []string) (TypeEnv, error) {
@@ -120,7 +140,5 @@ func run(t *testing.T, lines []string) (TypeEnv, error) {
 	assert.NoError(t, transformer.Error())
 
 	env, err := ti.Infer(module)
-	assert.NoError(t, err, "type inference error")
-
 	return env, err
 }
