@@ -12,6 +12,9 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
   - Expressive
   - Programming in the large scale
 
+## Status
+Proof of Concept
+
 ## Features
 - [x] Lexical analysis
 - [x] Parsing
@@ -53,3 +56,6 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
   - [ ] Go types mapping
   - [ ] Call Go functions
   - [ ] Call Go methods
+
+## Credits
+The lexer is derived from that of GoCaml.
