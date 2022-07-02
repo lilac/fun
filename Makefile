@@ -1,5 +1,7 @@
 EXE := fun
 
+.PHONY: dep build test install
+
 # install required dependencies
 dep:
 	go install golang.org/x/tools/cmd/goyacc@latest
@@ -7,9 +9,7 @@ dep:
 pkg/syntax/grammar.go: pkg/syntax/grammar.go.y
 	go generate ./pkg/syntax
 
-build: $(EXE)
-
-$(EXE): pkg/syntax/grammar.go
+build: pkg/syntax/grammar.go
 	go build ./cmd/fun
 
 test: pkg/syntax/grammar.go
