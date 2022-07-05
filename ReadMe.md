@@ -1,10 +1,13 @@
 ## Introduction
+
 Fun is a minimal functional programming language that runs on the ecosystem of Golang. Its syntax is similar to that of Standard ML.
 
 ## Motto
+
 **Programming should be fun**
 
 ## Goals
+
 - Easy to learn
 - Fun to program
 - Minimal design, less is more
@@ -13,9 +16,11 @@ Fun is a minimal functional programming language that runs on the ecosystem of G
   - Programming in the large scale
 
 ## Status
+
 Proof of Concept
 
 ## Features
+
 - [x] Lexical analysis
 - [x] Parsing
 - [x] Semantics analysis
@@ -58,4 +63,5 @@ Proof of Concept
   - [ ] Call Go methods
 
 ## Credits
+
 The lexer is derived from that of GoCaml.
