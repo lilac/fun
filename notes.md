@@ -50,7 +50,7 @@ That's why we chose Golang as the target platform.
 
 ## Components
 
-- [Abstract semantic tree](./pkg/ast/notes.md)
+- [Abstract syntax tree](./pkg/ast/notes.md)
 - [Type system](pkg/types/notes.md)
 - [Lexing](./pkg/syntax/lexer.go)
 - [Parsing](./pkg/syntax/parser.go)
@@ -58,7 +58,7 @@ That's why we chose Golang as the target platform.
 - [Type inference](./pkg/typing/notes.md)
 - Code generation
 
-## Roadmap      
+## Roadmap
 
 - Golang compatibility
   - Investigate [type reconstruction with structural subtyping](http://cristal.inria.fr/~simonet/publis/simonet-aplas03.pdf)
