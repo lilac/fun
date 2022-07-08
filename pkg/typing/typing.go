@@ -289,6 +289,7 @@ func unify(a, b types.Type) error {
 	return nil
 }
 
+// isGeneric returns if a type variable is generic
 func isGeneric(nonGenericVars common.Env[*types.Var, bool], v *types.Var) bool {
 	var ts = make([]types.Type, 0, len(nonGenericVars.Keys()))
 	for t := range nonGenericVars.Keys() {
