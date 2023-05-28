@@ -48,10 +48,6 @@ func main() {
 
 	err = compiler.Compile(src)
 	handleError(err)
-
-	// code generation
-	//fun := codegen.GenFunction(nil)
-	//printer.Fprint(os.Stdout, token.NewFileSet(), fun)
 }
 
 func handleError(err error) {

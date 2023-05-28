@@ -67,3 +67,11 @@ That's why we chose Golang as the target platform.
   - Default parameter of function
   - For comprehension
   - Extension method
+  - Elegant exception/error handling
+
+## Thoughts
+
+- Should we implement break/continue/return statements via escape continuation?
+  - If so, maybe we can add a variant of `let in end` expression, and borrow the `let/ec` syntax from Racket.
+  - In addition, if _escape continuation_ is supported, then all these statements plus exception handling can be built
+    on it. Refer to [this doc](https://matt.might.net/articles/implementing-exceptions/).
