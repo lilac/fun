@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"golang.org/x/exp/maps"
 	"reflect"
 	"strings"
 	"unicode"
@@ -20,6 +21,8 @@ type Type interface {
 	String() string
 	Equal(t Type) bool
 	Prune() Type
+	// VarSet returns the set of generic variables in this type
+	VarSet() map[VarId]struct{}
 }
 
 type VarId int
@@ -30,11 +33,28 @@ type Var struct {
 	Ref Type
 }
 
+func (v Var) VarSet() map[VarId]struct{} {
+	if v.Ref == nil {
+		return map[VarId]struct{}{v.Id: {}}
+	} else {
+		return v.Ref.VarSet()
+	}
+}
+
 // CtorType denotes a type derived from a type constructor
 type CtorType struct {
 	// Ctor is the type constructor name
 	Ctor string
 	Args []Type
+}
+
+func (c CtorType) VarSet() map[VarId]struct{} {
+	var vars map[VarId]struct{}
+	for _, arg := range c.Args {
+		v := arg.VarSet()
+		maps.Copy(vars, v)
+	}
+	return vars
 }
 
 func NewVar(id VarId) *Var {
