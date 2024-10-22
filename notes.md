@@ -69,6 +69,78 @@ That's why we chose Golang as the target platform.
   - Extension method
   - Elegant exception/error handling
 
+## Syntax
+
+- Expression as Statement (do statement)
+  - ~~Add a semicolon `;` to the end of an expression, to make it a statement~~.
+  - Example
+    ```ocaml
+    do println "ab"
+    (* equivalent to this statement. *)
+    val _ = println "ab"
+    ```
+- Let-end expression
+  - Make the `in` clause of `let-in-end` expression optional. When the `in` clause is skipped, the result of the expression is `()`.
+  - Example
+    ```ocaml
+    let
+      val a = 1
+      do println a
+      val b = "done"
+      do println b
+    end
+    ```
+- For expression
+  - The `for` expression is like the [for comprehension of Elixir](https://elixir-lang.org/getting-started/comprehensions.html).
+  - It supports 2 forms.
+    - `for <pattern> in <exp> yield <exp>`
+    - `for <pattern> in <exp> <block>`
+  - Examples
+    ```ocaml
+    val lines = for x in [1, 2, 3] yield string x
+    (* A complex comprehension *)
+    val nums = for i in [1, 2, 3] do
+      if i mod 2 = 0 then yield i
+      else yield i * 2
+    end
+    ```
+- Block expression
+  - In procedural programming style, block (of statements) is the building blocks of program. Though many functional programming  languages do not support it, we think it's essential for practical programming.
+  - A block contains a sequence of expressions, that are executed one by one.
+  - Depending on the context, a block may contain control functions like `break`, `continue`, or `yield`.
+  - Example
+    ```ocaml
+    fun log x y = do
+      x := 1;
+      println "x = $x";
+      println "y = $y"
+    end
+    ```
+- While expression
+  - A procedural style loop.
+  - Example
+    ```ocaml
+    let
+      val a = 3
+      in
+      while i < 3 do
+        println i
+      end;
+      a
+    end
+    ```
+- For loop
+  - The procedural version of for expression
+  - Example
+    ```ocaml
+    for i in [1, 2, 3] do
+      if i mod 2 = 0 then println i
+    end
+    ```
+- Try expression
+- Defer expression
+- Raise/throw expression
+
 ## Thoughts
 
 - Should we implement break/continue/return statements via escape continuation?
