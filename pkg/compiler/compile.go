@@ -3,8 +3,12 @@ package compiler
 import (
 	"fmt"
 	"github.com/lilac/fun-lang/pkg/alpha"
+	"github.com/lilac/fun-lang/pkg/codegen"
 	"github.com/lilac/fun-lang/pkg/syntax"
 	"github.com/lilac/fun-lang/pkg/typing"
+	"go/printer"
+	"go/token"
+	"os"
 )
 
 func Compile(source *syntax.Source) error {
@@ -22,6 +26,13 @@ func Compile(source *syntax.Source) error {
 		return err
 	}
 	dumpTypeEnv(env)
+
+	irModule := lowerAst(module, env)
+	fmt.Println(irModule)
+
+	// code generation
+	fun := codegen.GenFunction(nil)
+	printer.Fprint(os.Stdout, token.NewFileSet(), fun)
 	return nil
 }
 
